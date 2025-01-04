@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Post - {{ server.name }}</title>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #457b9d;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #1d3557;
+            transform: scale(1.05);
+        }
+
+        .back-btn {
+            background-color: #ccc;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background-color: #bbb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Make Post - {{ server.name }}</h1>
+    
+    <!-- Form for creating a post -->
+    <form action="{{ url_for('server_post', server_id=server.id) }}" method="POST" enctype="multipart/form-data">
+        <label for="content">Post Content</label>
+        <textarea id="content" name="content" placeholder="Write your post..." required></textarea>
+
+        <label for="media_file">Upload Image/Video</label>
+        <input type="file" id="media_file" name="media_file">
+
+        <button type="submit">Post</button>
+    </form>
+
+    <a href="{{ url_for('server_feed', server_id=server.id) }}" class="back-btn">Back to Feed</a>
+</div>
+
+</body>
+</html>

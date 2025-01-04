@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helper & Counsel Requests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .request-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .request-info {
+            font-size: 1.1em;
+        }
+        .status {
+            font-weight: bold;
+            color: #333;
+        }
+        .status.pending { color: #6c757d; }
+        .status.accepted { color: #28a745; }
+        .status.rejected { color: #dc3545; }
+        .actions button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .accept-button { background-color: #28a745; color: white; }
+        .reject-button { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sent Requests Section -->
+        <h1>Helper & Counsel Requests Sent</h1>
+        {% if sent_requests %}
+            <ul>
+                {% for request in sent_requests %}
+                    <li class="request-card">
+                        <div class="request-info">
+                            <p>You sent a {{ request.helper_type | capitalize }} request to {{ request.receiver.username }}.</p>
+                            <p>Status: 
+                                <span class="status {{ request.status }}">{{ request.status.capitalize() }}</span>
+                            </p>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You haven't sent any helper or counsel requests.</p>
+        {% endif %}
+
+        <!-- Received Requests Section -->
+        <h1>Helper & Counsel Requests Received</h1>
+        {% if received_requests %}
+            <ul>
+                {% for request in received_requests %}
+                    <li class="request-card">
+                        <div class="request-info">
+                            <p>{{ request.sender.username }} has sent a {{ request.helper_type | capitalize }} request to you.</p>
+                            <p>Status: 
+                                <span class="status {{ request.status }}">{{ request.status.capitalize() }}</span>
+                            </p>
+                        </div>
+                        {% if request.status == 'pending' %}
+                            <div class="actions">
+                                <button class="accept-button" onclick="handleRequest({{ request.id }}, 'accept')">Accept</button>
+                                <button class="reject-button" onclick="handleRequest({{ request.id }}, 'reject')">Reject</button>
+                            </div>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No helper or counsel requests received.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function handleRequest(requestId, action) {
+            fetch(`/handle_helper_request/${requestId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action })
+            }).then(response => {
+                if (response.status === 200) {
+                    alert(action === 'accept' ? 'Request accepted!' : 'Request rejected!');
+                    location.reload();
+                } else {
+                    alert('Error handling request.');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

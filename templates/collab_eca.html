@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collab in ECAs</title>
+</head>
+<body>
+    <h1>Collaborate in ECAs</h1>
+    <ul>
+        {% for post in posts if post.is_collab_post %}
+            <li>
+                <strong>{{ post.title }}</strong> by {{ post.user.username }}
+                <p>{{ post.content }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+    <form action="{{ url_for('add_eca_post') }}" method="POST">
+        <input type="text" name="title" placeholder="Collab Post Title" required>
+        <textarea name="content" placeholder="Collab Content" required></textarea>
+        <input type="hidden" name="is_collab_post" value="1">
+        <button type="submit">Create Collab Post</button>
+    </form>
+</body>
+</html>
+
+
+

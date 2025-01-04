@@ -1,0 +1,58 @@
+{% macro render_comment(comment, video_id) %}
+    <li id="comment-{{ comment.id }}" style="margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 20px; background-color: #f0f2f5;">
+        <!-- Comment Content -->
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center;">
+                <a href="{{ url_for('view_profile', user_id=comment.user.id) }}" style="text-decoration: none; margin-right: 10px;">
+                    <img src="{{ url_for('static', filename='profile_pics/' + (comment.user.profile_pic or 'default.jpg')) }}" alt="Profile Picture" style="width: 30px; height: 30px; border-radius: 50%;">
+                </a>
+                <div>
+                    <strong><a href="{{ url_for('view_profile', user_id=comment.user.id) }}" style="color: #1d3557; text-decoration: none;">{{ comment.user.username }}</a></strong>: {{ comment.content }}
+                </div>
+            </div>
+            <button onclick="toggleReplyForm({{ comment.id }})" style="background-color: transparent; color: #457b9d; border: none; cursor: pointer;">Reply</button>
+        </div>
+
+        <!-- Display Uploaded Image -->
+        {% if comment.image %}
+            <div style="margin-top: 10px;">
+                <img src="{{ url_for('static', filename=comment.image) }}" alt="Uploaded Image" style="max-width: 100%; border-radius: 10px;">
+            </div>
+        {% endif %}
+        {% if comment.gif_url %}
+            <div style="margin-top: 10px;">
+                <img src="{{ comment.gif_url }}" alt="GIF" style="max-width: 100%; border-radius: 10px;">
+            </div>
+        {% endif %}
+
+        <!-- Reaction Buttons -->
+        <div>
+            <!-- Like Button -->
+            <button onclick="likeComment({{ comment.id }})" id="like-btn-{{ comment.id }}" style="background-color: transparent; border: none; cursor: pointer;">
+                <i class="fas fa-heart" style="color: {% if comment.likes.filter_by(user_id=session['user_id']).first() %}red{% else %}white{% endif %}; font-size: 20px;" id="heart-icon-{{ comment.id }}"></i>
+            </button>
+            <span id="like-count-{{ comment.id }}">{{ comment.likes.count() }}</span>
+            <!-- Support Button -->
+            <button onclick="supportComment({{ comment.id }})" id="support-btn-{{ comment.id }}" style="background-color: transparent; border: none; cursor: pointer; color: #457b9d;">
+                🤝
+            </button>
+            <span id="support-count-{{ comment.id }}">{{ comment.supports.count() }}</span>
+        </div>
+
+        <!-- Reply Form -->
+        <div id="reply-form-{{ comment.id }}" style="display: none; margin-top: 10px; padding-left: 40px;">
+            <textarea id="reply-text-{{ comment.id }}" placeholder="Write a reply..." style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc;"></textarea>
+            <input type="file" id="reply-image-{{ comment.id }}" accept="image/*" style="margin-top: 5px;">
+            <button onclick="replyToComment({{ comment.id }}, {{ video_id }})" style="background-color: #457b9d; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 5px;">Submit Reply</button>
+        </div>
+
+        <!-- Nested Replies -->
+        <ul id="reply-list-{{ comment.id }}" style="list-style-type: none; margin-top: 10px; padding-left: 20px; border-left: 1px solid #ddd;">
+            {% if comment.replies %}
+                {% for reply in comment.replies %}
+                    {{ render_comment(reply, video_id) }}
+                {% endfor %}
+            {% endif %}
+        </ul>
+    </li>
+{% endmacro %}

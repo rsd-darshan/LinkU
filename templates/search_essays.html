@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Essays by Topic</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 2.5rem;
+            color: #333;
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .search-container form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-container input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .search-container button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .results-container {
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .essay-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .essay-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .essay-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .essay-card p {
+            font-size: 1rem;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .essay-card a {
+            color: #007BFF;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .essay-card a:hover {
+            text-decoration: underline;
+        }
+
+        .no-results {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search Essays by Topic</h1>
+
+    <div class="search-container">
+        <!-- Search Form -->
+        <form method="POST" action="{{ url_for('search_essays') }}">
+            <input type="text" name="search_query" placeholder="Enter a topic to search" value="{{ search_query }}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="results-container">
+        {% if essays %}
+            {% for essay in essays %}
+                <div class="essay-card">
+                    <h2>📚 Topic: {{ essay.topic }}</h2>
+                    <p>{{ essay.content[:200] }}{% if essay.content|length > 200 %}...{% endif %}</p>
+                    <p>
+                        <strong>Uploaded by:</strong> 
+                        <a href="{{ url_for('view_profile', user_id=essay.user.id) }}">
+                            {{ essay.user.username }}
+                        </a>
+                    </p>
+                </div>
+            {% endfor %}
+        {% elif search_query %}
+            <p class="no-results">No essays found matching the topic "{{ search_query }}".</p>
+        {% endif %}
+    </div>
+</body>
+</html>

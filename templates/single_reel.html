@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ reel.title }} - Reel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0b0b0b;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Reel Container */
+        .reel-container {
+            width: 60%;
+            max-width: 1000px;
+            height: 80%;
+            background-color: #111;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .reel video {
+            width: 100%;
+            max-height: 500px;
+            border-radius: 10px;
+            object-fit: contain;
+            background-color: #000;
+        }
+
+        .reel-info {
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .reel-info h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .reel-info p {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        /* Controls and Stats */
+        .reel-stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .reel-stats span {
+            display: flex;
+            align-items: center;
+        }
+
+        .reel-stats i {
+            margin-right: 8px;
+        }
+
+        /* Buttons */
+        .reel-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .reel-controls button {
+            background: #222;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .reel-controls button:hover {
+            background-color: #444;
+        }
+
+        .reel-controls button.liked {
+            color: #ff5555;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            width: 100%;
+            margin-top: 20px;
+            background-color: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .comment-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .comment-input textarea {
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            padding: 8px;
+            background-color: #333;
+            color: #fff;
+        }
+
+        .comment-input button {
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .comment-input button:hover {
+            background-color: #0056b3;
+        }
+
+        .comments-list .comment {
+            background-color: #292929;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .comments-list .comment p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="reel-container">
+        <!-- Video Player -->
+        <video id="reel-video" controls autoplay>
+            <source src="{{ url_for('static', filename='reels/' + reel.filename) }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <!-- Reel Information -->
+        <div class="reel-info">
+            <h2>{{ reel.title }}</h2>
+            <p>{{ reel.description }}</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="reel-stats">
+            <span><i class="fas fa-heart"></i> <span id="likes-count">{{ reel.likes }}</span></span>
+            <span><i class="fas fa-comment"></i> <span id="comments-count">{{ reel.comments_count }}</span></span>
+            <span><i class="fas fa-share"></i> <span id="shares-count">{{ reel.shares }}</span></span>
+        </div>
+
+        <!-- Controls -->
+        <div class="reel-controls">
+            <button onclick="toggleLike()" id="like-button" class="{{ 'liked' if reel.is_liked else '' }}">
+                <i class="fas fa-heart"></i> Like
+            </button>
+            <button onclick="copyLink()">
+                <i class="fas fa-share"></i> Share
+            </button>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h3>Comments</h3>
+            <div class="comments-list" id="comments-list">
+                {% for comment in reel.comments %}
+                    <div class="comment">
+                        <p>{{ comment.content }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Comment Input -->
+            <div class="comment-input">
+                <textarea id="comment-input" placeholder="Add a comment..."></textarea>
+                <button onclick="addComment()">Post</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleLike() {
+            fetch('/like_reel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reel_id: {{ reel.id }} })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const likesCount = document.getElementById("likes-count");
+                    likesCount.textContent = data.likes;
+                    const likeButton = document.getElementById("like-button");
+                    likeButton.classList.toggle('liked', data.liked);
+                }
+            });
+        }
+
+        function copyLink() {
+    const reelSlug = reelData[currentReelIndex].slug;  // Ensure slug is used here
+    const reelUrl = `${window.location.origin}/reel/${reelSlug}`;  // Construct the full URL
+
+    // Create a temporary input to hold the URL
+    const tempInput = document.createElement('input');
+    tempInput.value = reelUrl;
+    document.body.appendChild(tempInput);
+
+    // Select the text inside the input and copy it to the clipboard
+    tempInput.select();
+    document.execCommand('copy');
+
+    // Remove the temporary input element
+    document.body.removeChild(tempInput);
+
+    // Optionally, alert the user or show a tooltip that the link was copied
+    alert('Reel link copied to clipboard!');
+}
+
+
+
+        function addComment() {
+            const commentText = document.getElementById("comment-input").value.trim();
+            if (!commentText) return;
+
+            fetch('/comment_reel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reel_id: {{ reel.id }}, comment: commentText })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const commentsList = document.getElementById("comments-list");
+                    commentsList.innerHTML += `<div class="comment"><p>${commentText}</p></div>`;
+                    document.getElementById("comment-input").value = "";
+                    const commentsCount = document.getElementById("comments-count");
+                    commentsCount.textContent = data.comments_count;
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

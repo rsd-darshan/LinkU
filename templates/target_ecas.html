@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Target ECAs</title>
+</head>
+<body>
+    <h1>Target ECAs</h1>
+
+    <!-- List Existing Target ECAs -->
+    <ul id="eca-list">
+        {% for target in target_ecas %}
+            <li>
+                <strong>{{ target.title }}</strong>
+                <p>Start: <span class="start-date" data-utc="{{ target.start_date.isoformat() }}"></span></p>
+                <p>End: <span class="end-date" data-utc="{{ target.end_date.isoformat() }}"></span></p>
+                <p>Status: {{ target.status }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Form to Add a New Target ECA -->
+    <h2>Add a New Target ECA</h2>
+    <form id="eca-form" action="{{ url_for('add_target_eca') }}" method="POST">
+        <input type="text" name="title" placeholder="Target ECA Title" required>
+        <label for="start_date">Start Date:</label>
+        <input type="datetime-local" id="start_date" required>
+        <label for="end_date">End Date:</label>
+        <input type="datetime-local" id="end_date" required>
+        <input type="hidden" name="utc_start_date" id="utc_start_date">
+        <input type="hidden" name="utc_end_date" id="utc_end_date">
+        <button type="submit">Add Target</button>
+    </form>
+    
+    <script>
+        const form = document.getElementById('eca-form');
+
+        form.addEventListener('submit', function (e) {
+            // Get local datetime values
+            const localStart = document.getElementById('start_date').value;
+            const localEnd = document.getElementById('end_date').value;
+
+            // Ensure both dates are provided
+            if (!localStart || !localEnd) {
+                e.preventDefault();
+                alert("Please provide both start and end dates.");
+                return;
+            }
+
+            // Convert to UTC
+            const utcStart = new Date(localStart).toISOString();
+            const utcEnd = new Date(localEnd).toISOString();
+
+            // Set hidden input values
+            document.getElementById('utc_start_date').value = utcStart;
+            document.getElementById('utc_end_date').value = utcEnd;
+        });
+
+        // Function to convert UTC date-time to local date-time
+        function convertUTCToLocal() {
+            document.querySelectorAll('.start-date').forEach(function (element) {
+                const utcDate = new Date(element.getAttribute('data-utc'));
+                const localDate = new Date(utcDate.getTime() - (utcDate.getTimezoneOffset() * 60000));
+                element.textContent = localDate.toLocaleString(undefined, {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true, // Use 24-hour format; set true for 12-hour format
+                });
+            });
+
+            document.querySelectorAll('.end-date').forEach(function (element) {
+                const utcDate = new Date(element.getAttribute('data-utc'));
+                const localDate = new Date(utcDate.getTime() - (utcDate.getTimezoneOffset() * 60000));
+                element.textContent = localDate.toLocaleString(undefined, {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true, // Use 24-hour format; set true for 12-hour format
+                });
+            });
+        }
+
+        // Call the function to perform conversion
+        convertUTCToLocal();
+    </script>
+</body>
+</html>

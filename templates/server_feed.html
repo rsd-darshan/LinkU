@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ server.name }} - Server Feed</title>
+    <style>
+        .post img {
+            max-width: 100%;
+            height: auto;
+        }
+        .post video {
+            max-width: 100%;
+            height: auto;
+        }
+        .make-post-btn {
+            background-color: #457b9d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .make-post-btn:hover {
+            background-color: #1d3557;
+            transform: scale(1.05);
+        }
+
+        .post-container {
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .post p {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ server.name }} - Server Feed</h1>
+
+    <!-- Button to navigate to the make post page -->
+    <a href="{{ url_for('server_post', server_id=server.id) }}" class="make-post-btn">Make Post</a>
+
+    <!-- Display the list of posts -->
+    <h2>Posts</h2>
+    {% for post in posts %}
+        <div class="post-container">
+            <p><strong>{{ post.user.username }}:</strong> {{ post.content }}</p>
+            {% if post.media_filename %}
+                {% if post.media_filename.endswith('.mp4') %}
+                    <video controls>
+                        <source src="{{ url_for('static', filename='uploads/' + post.media_filename) }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                {% else %}
+                    <img src="{{ url_for('static', filename='uploads/' + post.media_filename) }}" alt="Image">
+                {% endif %}
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    {% if not posts %}
+        <p>No posts yet. Be the first to post!</p>
+    {% endif %}
+</body>
+</html>
