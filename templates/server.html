@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ server.name }} - Server Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .server-info {
+            margin: 20px 0;
+        }
+
+        .server-info p {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .btn {
+            background-color: #457b9d;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            display: block;
+            margin: 10px auto;
+            width: 150px;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: #1d3557;
+            transform: scale(1.05);
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            background-color: #f1f1f1;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Server Name -->
+    <h1>{{ server.name }}</h1>
+
+    <!-- List of People Joined -->
+    <h2>Members</h2>
+    <ul>
+        {% for member in members %}
+            <li>{{ member.username }}</li>
+        {% endfor %}
+    </ul>
+
+    {% if not members %}
+        <p>No members have joined this server yet.</p>
+    {% endif %}
+
+    <div class="server-info">
+        <p><strong>Server Code:</strong> {{ server.code }}</p>
+        <p><strong>Owner:</strong> {{ server.owner.username }}</p>
+    </div>
+    <!-- Chat Button -->
+    <a href="{{ url_for('server_chat', server_id=server.id) }}" class="btn">Go to Chat</a>
+
+    <a href="{{ url_for('server_feed', server_id=server.id) }}">Server Feed</a>
+
+    <!-- Back Button -->
+    <a href="{{ url_for('servers') }}" class="btn">Back</a>
+
+    
+</div>
+
+
+</body>
+</html>

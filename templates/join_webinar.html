@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Join Webinar</title>
+    <style>
+        /* Same styling as before */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Available Webinars</h1>
+        <ul class="webinar-list">
+            {% if webinars %}
+                {% for webinar in webinars %}
+                <li class="webinar-item">
+                    <div class="webinar-info">
+                        <h2>{{ webinar.title }}</h2>
+                        <p>Date: {{ webinar.date }} | Time: {{ webinar.time }}</p>
+                    </div>
+                    <button class="btn" onclick="location.href='{{ url_for('about_webinar', webinar_id=webinar.id) }}'">About</button>
+                </li>
+                {% endfor %}
+            {% else %}
+                <li>
+                    <p>No Webinar Created</p>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</body>
+</html>

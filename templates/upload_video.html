@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Content - CampusConnect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 700px;
+            background-color: #ffffff;
+            padding: 25px;
+            margin: 20px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        h2 {
+            text-align: center;
+            color: #2d4059;
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2d4059;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="file"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+            font-size: 16px;
+        }
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus,
+        .form-group select:focus,
+        .form-group input[type="file"]:focus {
+            border-color: #2d4059;
+            outline: none;
+        }
+        .form-group textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        .form-group .info {
+            font-size: 12px;
+            color: #666;
+        }
+        .progress-bar {
+            display: none;
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress {
+            width: 0;
+            height: 12px;
+            background-color: #4caf50;
+            transition: width 0.4s ease;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #2d4059;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        .submit-btn:hover {
+            background-color: #1d2d44;
+            transform: scale(1.03);
+        }
+        .submit-btn:active {
+            transform: scale(0.97);
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position the tooltip above */
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+    <script>
+        function showProgressBar() {
+            document.getElementById('progress-bar').style.display = 'block';
+        }
+
+        function updateProgress(percent) {
+            const progress = document.getElementById('progress');
+            progress.style.width = percent + '%';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('upload-form');
+            form.addEventListener('submit', function(event) {
+                showProgressBar();
+
+                // Mock upload progress for demonstration
+                let percent = 0;
+                const interval = setInterval(function() {
+                    percent += 10;
+                    if (percent > 100) {
+                        clearInterval(interval);
+                    } else {
+                        updateProgress(percent);
+                    }
+                }, 200);
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2><i class="fas fa-upload"></i> Upload Your Content</h2>
+        <form id="upload-form" action="{{ url_for('upload_video') }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" name="title" id="title" required placeholder="Enter a title for your content">
+                <div class="info">A short title for your upload (max 100 characters).</div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea name="description" id="description" required placeholder="Provide a description for your content"></textarea>
+                <div class="info">Add more context or details about your upload.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category</label>
+                <input type="text" name="category" id="category" required placeholder="e.g., Education, Events, Announcements">
+            </div>
+
+            <div class="form-group">
+                <label for="tags">Tags <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">Add tags separated by commas to help others find your content.</span></span></label>
+                <input type="text" name="tags" id="tags" required placeholder="e.g., CampusLife, Workshops, Fun">
+            </div>
+
+            <div class="form-group">
+                <label for="privacy">Privacy:</label>
+                <select name="privacy">
+                    <option value="public">Public</option>
+                    <option value="friends">Friends Only</option>
+                    <option value="private">Private</option>
+                </select>
+                
+                <div class="info">Select who can view this content.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="video_file">Upload File <span class="tooltip"><i class="fas fa-info-circle"></i><span class="tooltiptext">You can upload any file type, including photos and videos.</span></span></label>
+                <input type="file" name="video_file" id="video_file" required>
+            </div>
+
+            <div class="form-group">
+                <input type="file" name="thumbnail" id="thumbnail" accept="image/*">
+                <div class="info">Upload an image to represent your video or file.</div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-bar" id="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+
+            <button type="submit" class="submit-btn"><i class="fas fa-paper-plane"></i> Upload</button>
+        </form>
+    </div>
+</body>
+</html>
+

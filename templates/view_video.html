@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ video.title }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 700px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .video-details p {
+            color: #555;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .media {
+            margin-top: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            max-width: 100%;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+        .actions button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: #606770;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        .actions button:hover {
+            color: #2d4059;
+            transform: scale(1.05);
+        }
+        .actions i {
+            margin-right: 5px;
+        }
+        .post-stats {
+            display: flex;
+            justify-content: space-around;
+            font-size: 14px;
+            color: #888;
+            margin-top: 10px;
+        }
+        .comments-section {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .comments-section textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            resize: vertical;
+            margin-top: 10px;
+        }
+        .comments-section button {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: #2d4059;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .comments-section button:hover {
+            background-color: #1d2d44;
+        }
+        .tooltip {
+            display: none;
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        .tooltip.show {
+            display: inline-block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>{{ video.title }}</h2>
+        <div class="video-details">
+            <p>Posted by <strong>{{ video.uploader.username }}</strong></p>
+            <p>{{ video.description }}</p>
+        </div>
+
+        <!-- Check if the file is a video or an image -->
+        <div class="media">
+            {% if video.filename.endswith(('.mp4', '.avi', '.mov', '.wmv', '.flv')) %}
+                <video controls width="100%">
+                    <source src="{{ url_for('static', filename='videos/' + video.filename) }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            {% elif video.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
+                <img src="{{ url_for('static', filename='videos/' + video.filename) }}" alt="{{ video.title }}" width="100%">
+            {% else %}
+                <p>File format not supported.</p>
+            {% endif %}
+        </div>
+
+        <div class="video-details">
+            <p>Category: {{ video.category }}</p>
+            <p>Tags: {{ video.tags }}</p>
+        </div>
+
+        <!-- Reaction Section -->
+        <div class="actions">
+            <button onclick="reactPost({{ video.id }}, 'like')"><i class="fas fa-thumbs-up"></i> Like</button>
+            <button onclick="reactPost({{ video.id }}, 'love')"><i class="fas fa-heart"></i> Love</button>
+            <button onclick="commentPost({{ video.id }})"><i class="fas fa-comment"></i> Comment</button>
+            <button onclick="copyLink('{{ request.host_url }}post/{{ video.unique_id }}')"><i class="fas fa-link"></i> Copy Link</button>
+        </div>
+
+        <!-- Post Stats -->
+        <div class="post-stats">
+            <p id="reaction-count-{{ video.id }}">{{ video.reactions|length }} Reactions</p>
+            <p>{{ video.comments|length }} Comments</p>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h3>Comments</h3>
+            <ul>
+                {% for comment in video.comments %}
+                    <li><strong>{{ comment.user.username }}:</strong> {{ comment.content }}</li>
+                {% endfor %}
+            </ul>
+
+            <textarea id="comment-text-{{ video.id }}" placeholder="Add a comment"></textarea>
+            <button onclick="commentPost({{ video.id }})">Post Comment</button>
+        </div>
+
+        <!-- Tooltip for Copy Link Confirmation -->
+        <div class="tooltip" id="tooltip-{{ video.id }}">Link copied to clipboard!</div>
+    </div>
+<script>
+    function reactPost(videoId, reactionType) {
+        fetch(`/react_video/${videoId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ reaction_type: reactionType }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Ensure each reaction type is updated
+                document.getElementById(`like-count-${videoId}`).textContent = data.reactions.like || 0;
+                document.getElementById(`love-count-${videoId}`).textContent = data.reactions.love || 0;
+                document.getElementById(`haha-count-${videoId}`).textContent = data.reactions.haha || 0;
+            } else {
+                alert('Error adding reaction.');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating reaction:', error);
+        });
+    }
+    
+    
+
+    function commentPost(videoId) {
+        const commentText = document.getElementById(`comment-text-${videoId}`).value;
+
+        fetch(`/comment_video/${videoId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({comment: commentText}),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Comment added!');
+                location.reload();
+            } else {
+                alert('Error adding comment.');
+            }
+        });
+    }
+
+    function copyLink(link) {
+        navigator.clipboard.writeText(link).then(() => {
+            alert('Link copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy link: ', err);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+            const videoElement = document.getElementById('video');
+            let watchedTime = 0;
+
+            videoElement.addEventListener('timeupdate', () => {
+                watchedTime += 1; // Track time in seconds
+                if (watchedTime % 5 === 0) { // Send to server every 5 seconds
+                    fetch('/update_watched_time', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            video_id: videoElement.dataset.videoId,
+                            watched_time: watchedTime
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log(data.status))
+                    .catch(error => console.error('Error:', error));
+                }
+            });
+        });
+    </script>
+</body>
+</html>

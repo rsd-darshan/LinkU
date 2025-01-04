@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course.title }} - CampusConnect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            max-width: 1200px;
+            margin: 20px auto;
+            gap: 20px;
+            padding: 20px;
+        }
+        .sidebar {
+            width: 25%;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            font-size: 0.95em;
+        }
+        .sidebar h2 {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar ul li {
+            margin: 12px 0;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            color: #333;
+        }
+        .sidebar ul li:hover {
+            background-color: #e2e8f0;
+        }
+        .sidebar ul li.active {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+        .main-content {
+            width: 70%;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        .main-content h3 {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .video-player-container {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        #video-player {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        .video-list {
+            margin-top: 20px;
+        }
+        .video-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: background-color 0.2s;
+            cursor: pointer;
+            background-color: #f9fafb;
+        }
+        .video-item:hover {
+            background-color: #f1f5f9;
+        }
+        .video-thumbnail {
+            width: 100px;
+            height: 60px;
+            background-color: #000;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .video-info {
+            flex: 1;
+        }
+        .video-title {
+            font-size: 1.1em;
+            color: #333;
+            margin: 0;
+        }
+        .resource-section, .assignment-section, .instructor-section {
+            margin-top: 25px;
+        }
+        .resource-item, .assignment-item, .instructor-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .instructor-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        .section-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>{{ course.title }}</h2>
+        <ul>
+            <li class="active" {% if videos %} onclick="playVideo('{{ url_for('static', filename='courses/' + videos[0].filename) }}')" {% endif %}>Introduction</li>
+            <li>Course Outline</li>
+            <li>Discussion Forum</li>
+            <li><a href="{{ url_for('review_contents', course_id=course.id) }}">Review Course Resources and Assignments</a></li>
+            <li>Resources</li>
+            <li>Assignments</li>
+            <li>Related Courses</li>
+            <li>Course FAQs</li>
+            <li>Instructor Info</li>
+            <li>Download Course Material</li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h3>Course Overview</h3>
+        <p><strong>Category:</strong> {{ course.category }}</p>
+        <p><strong>Instructor:</strong> {{ course.uploader.username }}</p>
+        <p>{{ course.description }}</p>
+
+        <!-- Video Player -->
+        <div class="video-player-container">
+            {% if videos %}
+                <video id="video-player" controls>
+                    <source id="video-source" src="{{ url_for('static', filename='courses/' + videos[0].filename) }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            {% else %}
+                <p>No videos available.</p>
+            {% endif %}
+        </div>
+
+        <!-- Video Playlist -->
+        <h3 class="section-title">Course Videos</h3>
+        <div class="video-list">
+            {% for video in videos %}
+                <div class="video-item" onclick="playVideo('{{ url_for('static', filename='courses/' + video.filename) }}')">
+                    <div class="video-thumbnail">
+                        <video muted>
+                            <source src="{{ url_for('static', filename='courses/' + video.filename) }}" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="video-info">
+                        <h4 class="video-title">{{ loop.index }}. {{ video.title }}</h4>
+                        <p class="video-description">{{ video.description }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Resources Section -->
+        <div class="resource-section">
+            <h3 class="section-title">Course Resources</h3>
+            {% for resource in resources %}
+                <a class="resource-item" href="{{ url_for('static', filename='course_resources/' + resource.filename) }}" download>{{ resource.filename }}</a>
+            {% endfor %}
+        </div>
+
+        <!-- Assignments Section -->
+        <div class="assignment-section">
+            <h3 class="section-title">Assignments</h3>
+            {% for assignment in assignments %}
+                <a class="assignment-item" href="{{ url_for('static', filename='course_assignments/' + assignment.filename) }}" download>{{ assignment.filename }}</a>
+            {% endfor %}
+        </div>
+
+        <div class="course-details">
+            <h2>{{ course.title }}</h2>
+            <p>{{ course.description }}</p>
+            <p>Category: {{ course.category }}</p>
+            <p id="length">
+                {% if progress and progress.remaining_time == "00:00:00" %}
+                <span id="remaining-time" style="color: green; font-weight: bold;">Completed</span>
+                {% else %}
+                Length: <span id="remaining-time">{{ remaining_time }}</span>
+                {% endif %}
+            </p>
+            <p>Uploaded by: {{ course.uploader.username }}</p>
+        
+            <!-- Start/Continue Button -->
+            {% if not progress or progress.remaining_time != "00:00:00" %}
+            <button id="start-course" class="btn btn-primary">Start</button>
+            {% endif %}
+        </div>
+        
+
+        
+
+        <!-- Instructor Info Section -->
+        <div class="instructor-section">
+            <h3 class="section-title">Instructor Info</h3>
+            {% for instructor in instructors %}
+                <div class="instructor-item">
+                    <img src="{{ url_for('static', filename='course_instructors/' + instructor.photo_filename) }}" alt="{{ instructor.name }}">
+                    <div>
+                        <strong>{{ instructor.name }}</strong><br>
+                        <a href="{{ instructor.profile_link }}" target="_blank">Profile</a> |
+                        <a href="{{ instructor.fb_link }}" target="_blank">Facebook</a> |
+                        <a href="{{ instructor.linkedin_link }}" target="_blank">LinkedIn</a>
+                        
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function playVideo(videoPath) {
+        const videoPlayer = document.getElementById("video-player");
+        const videoSource = document.getElementById("video-source");
+        videoSource.src = videoPath;
+        videoPlayer.load();
+        videoPlayer.play();
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+    const videos = document.querySelectorAll('video');
+    
+    videos.forEach((video) => {
+        let watchTime = 0;
+        const videoId = video.dataset.videoId;
+
+        // Track watch time every second
+        video.addEventListener('timeupdate', () => {
+            if (!video.paused && !video.ended) {
+                watchTime += 1;
+                
+                // Send watch time to the server every 10 seconds
+                if (watchTime % 10 === 0) {
+                    fetch(`/update_watch_time`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            video_id: videoId,
+                            watch_time: 10, // Increment in seconds
+                        }),
+                    });
+                }
+            }
+        });
+    });
+});
+document.addEventListener('DOMContentLoaded', function () {
+        const startButton = document.getElementById('start-course');
+        const remainingTimeSpan = document.getElementById('remaining-time');
+        let timer;
+
+        startButton.addEventListener('click', function () {
+            const courseId = {{ course.id }};
+            const userId = {{ user.id }};
+            let time = remainingTimeSpan.textContent.split(':');
+            let hours = parseInt(time[0]);
+            let minutes = parseInt(time[1]);
+            let seconds = parseInt(time[2]);
+
+            // Start real-time countdown
+            if (timer) clearInterval(timer);
+            timer = setInterval(function () {
+                if (hours === 0 && minutes === 0 && seconds === 0) {
+                    clearInterval(timer);
+
+                    // Update the UI with a "Completed" sign
+                    remainingTimeSpan.textContent = "Completed";
+                    remainingTimeSpan.style.color = "green";
+                    remainingTimeSpan.style.fontWeight = "bold";
+
+                    // Send completion status to the server
+                    fetch('/complete_course', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_id: userId,
+                            course_id: courseId
+                        })
+                    }).then(response => response.json())
+                      .then(data => console.log("Course marked as completed:", data))
+                      .catch(err => console.error("Error marking course as completed:", err));
+                } else {
+                    if (seconds === 0) {
+                        seconds = 59;
+                        if (minutes === 0) {
+                            minutes = 59;
+                            hours -= 1;
+                        } else {
+                            minutes -= 1;
+                        }
+                    } else {
+                        seconds -= 1;
+                    }
+                }
+
+                // Update display
+                remainingTimeSpan.textContent = 
+                    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }, 1000);
+
+            // Save progress every 5 seconds
+            setInterval(function () {
+                const remainingTime = remainingTimeSpan.textContent;
+                fetch('/save_progress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        course_id: courseId,
+                        remaining_time: remainingTime
+                    })
+                }).then(response => response.json())
+                  .then(data => console.log("Progress saved:", data))
+                  .catch(err => console.error("Error saving progress:", err));
+            }, 10); // Save every 5 seconds
+        });
+    });
+    
+</script>
+
+</body>
+</html>

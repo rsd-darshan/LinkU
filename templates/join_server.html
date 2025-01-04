@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Server</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .join-server-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .join-server-container h1 {
+            margin-bottom: 20px;
+            color: #1d3557;
+        }
+
+        .join-server-container label {
+            font-weight: bold;
+            color: #333;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .join-server-container input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+
+        .join-server-container input[type="text"]:focus {
+            border-color: #457b9d;
+            outline: none;
+        }
+
+        .join-server-container button {
+            background-color: #1d3557;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .join-server-container button:hover {
+            background-color: #457b9d;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="join-server-container">
+        <h1>Join a Server</h1>
+        <form method="POST" action="{{ url_for('join_server') }}">
+            <label for="server_code">Enter Server Code:</label>
+            <input type="text" id="server_code" name="server_code" required>
+            <button type="submit">Join Server</button>
+        </form>
+    </div>
+</body>
+</html>

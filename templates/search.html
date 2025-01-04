@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Users</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .search-bar {
+            margin-bottom: 20px;
+        }
+        .search-bar input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .search-bar button {
+            padding: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .search-bar button:hover {
+            background-color: #0056b3;
+        }
+        .user-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .user-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .user-card .actions button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .user-card .actions button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Search Users</h1>
+        <div class="search-bar">
+            <form method="POST" action="{{ url_for('search') }}">
+                <input type="text" name="search_query" placeholder="Enter username to search...">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        {% if results %}
+        <ul>
+            {% for result in results %}
+                <li class="user-card">
+                    <div class="user-info">
+                        <!-- Link to user profile and display profile picture -->
+                        <a href="{{ url_for('view_profile', user_id=result.id) }}">
+                            <img src="{{ url_for('static', filename='profile_pics/' + (result.profile_pic or 'default.jpg')) }}" alt="Profile Picture">
+                        </a>
+                        <strong>{{ result.username }}</strong>
+                    </div>
+                    
+                    <!-- Display relationship status or action buttons -->
+                    <div class="actions">
+                        {% if requests_status.get(result.id) %}
+                            {% if 'lor' in requests_status[result.id] %}
+                                <p>LOR: {{ requests_status[result.id]['lor'].status.capitalize() }}</p>
+                            {% else %}
+                                <button onclick="requestLOR({{ result.id }})">Request LOR</button>
+                            {% endif %}
+                            
+                            {% if 'counsel' in requests_status[result.id] %}
+                                <p>Counsel: {{ requests_status[result.id]['counsel'].status.capitalize() }}</p>
+                            {% else %}
+                                <button onclick="requestCounsel({{ result.id }})">Request Counsel</button>
+                            {% endif %}
+                            
+                            {% if 'mentorship' in requests_status[result.id] %}
+                                <p>Mentorship: {{ requests_status[result.id]['mentorship'].status.capitalize() }}</p>
+                            {% else %}
+                                <button onclick="requestMentorship({{ result.id }})">Request Mentorship</button>
+                            {% endif %}
+                        {% else %}
+                            <button onclick="requestLOR({{ result.id }})">Request LOR</button>
+                            <button onclick="requestCounsel({{ result.id }})">Request Counsel</button>
+                            <button onclick="requestMentorship({{ result.id }})">Request Mentorship</button>
+                        {% endif %}
+                        
+                        <!-- Friend Request and Star Options -->
+                        <button onclick="sendFriendRequest({{ result.id }})">Send Friend Request</button>
+                        <button onclick="giveStar({{ result.id }})">Give Star</button>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+            <p>No users found.</p>
+        {% endif %}
+    </div>
+
+
+    <script>
+        function sendFriendRequest(userId) {
+            fetch(`/send_friend_request/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.status === 200) {
+                    alert('Friend request sent!');
+                } else {
+                    alert('Error sending friend request.');
+                }
+            });
+        }
+
+        function giveStar(receiverId) {
+            fetch(`/give_star/${receiverId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(response => {
+                if (response.status === 200) {
+                    alert('Star given!');
+                } else {
+                    alert('Error giving star.');
+                }
+            });
+        }
+
+        function requestLOR(userId) {
+            fetch(`/request_lor/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(response => {
+                if (response.status === 200) {
+                    alert('Request to give LOR sent!');
+                } else {
+                    alert('Error requesting LOR.');
+                }
+            });
+        }
+
+        function requestCounsel(userId) {
+            fetch(`/request_counsel/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(response => {
+                if (response.status === 200) {
+                    alert('Request to counsel sent!');
+                } else {
+                    alert('Error requesting counsel.');
+                }
+            });
+        }
+
+        function requestMentorship(userId) {
+            fetch(`/request_mentorship/${userId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(response => {
+                alert(response.status === 200 ? 'Mentorship request sent!' : 'Error requesting mentorship.');
+            });
+        }
+
+        function startChat(userId) {
+            window.location.href = `/chat/${userId}`;
+        }
+    </script>
+</body>
+</html>

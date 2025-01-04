@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servers</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .server-section {
+            margin: 20px 0;
+        }
+
+        .server-section h2 {
+            color: #1d3557;
+            margin-bottom: 15px;
+        }
+
+        .server-list {
+            margin: 10px 0;
+        }
+
+        .server-item {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .server-item:last-child {
+            border-bottom: none;
+        }
+
+        .server-name {
+            font-size: 18px;
+            color: #1d3557;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .server-name:hover {
+            color: #457b9d;
+        }
+
+        .join-server {
+            background-color: #457b9d;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .join-server:hover {
+            background-color: #1d3557;
+            transform: scale(1.05);
+        }
+
+        .join-server-form {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .join-server-form input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .join-server-form button {
+            background-color: #457b9d;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .join-server-form button:hover {
+            background-color: #1d3557;
+            transform: scale(1.05);
+        }
+
+        .create-server-btn {
+            background-color: #1d3557;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            margin-top: 20px;
+        }
+
+        .create-server-btn:hover {
+            background-color: #457b9d;
+            transform: scale(1.05);
+        }
+
+        .text-center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Section: Servers You Own -->
+        <h2>Servers You Own</h2>
+        {% if owned_servers %}
+            <ul>
+                {% for server in owned_servers %}
+                    <li><a href="{{ url_for('server', server_id=server.id) }}">{{ server.name }}</a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You don't own any servers.</p>
+        {% endif %}
+    
+        <!-- Section: Servers You've Joined -->
+        <h2>Servers You've Joined</h2>
+        {% if joined_servers %}
+            <ul>
+                {% for server in joined_servers %}
+                    <li><a href="{{ url_for('server', server_id=server.id) }}">{{ server.name }}</a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You haven't joined any servers.</p>
+        {% endif %}
+
+    <!-- Join server section -->
+    <div class="join-server-form">
+        <form method="POST" action="{{ url_for('join_server') }}">
+            <input type="text" name="server_code" placeholder="Enter server code..." required>
+            <button type="submit">Join</button>
+        </form>
+    </div>
+
+    <!-- Option to create a new server -->
+    <div class="text-center">
+        <button class="create-server-btn" onclick="location.href='{{ url_for('create_server') }}'">Create a New Server</button>
+    </div>
+</div>
+
+</body>
+</html>
+

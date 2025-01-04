@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your ECAs</title>
+</head>
+<body>
+    <h1>Your ECAs</h1>
+
+    <ul>
+        {% for eca in user_ecas %}
+            <li>
+                <strong>{{ eca.title }}</strong> - {{ eca.status }}
+                <p>{{ eca.description }}</p>
+                <form action="{{ url_for('update_eca', id=eca.id) }}" method="POST">
+                    <select name="status" onchange="this.form.submit()">
+                        <option value="Completed" {% if eca.status == 'Completed' %}selected{% endif %}>Completed</option>
+                        <option value="Ongoing" {% if eca.status == 'Ongoing' %}selected{% endif %}>Ongoing</option>
+                        <option value="Target" {% if eca.status == 'Target' %}selected{% endif %}>Target</option>
+                    </select>
+                    <input type="hidden" name="title" value="{{ eca.title }}">
+                    <input type="hidden" name="description" value="{{ eca.description }}">
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <form action="{{ url_for('add_eca') }}" method="POST">
+        <input type="text" name="title" placeholder="ECA Title" required>
+        <textarea name="description" placeholder="Description"></textarea>
+        <select name="status">
+            <option value="Completed">Completed</option>
+            <option value="Ongoing">Ongoing</option>
+            <option value="Target">Target</option>
+        </select>
+        <button type="submit">Add ECA</button>
+    </form>
+</body>
+</html>

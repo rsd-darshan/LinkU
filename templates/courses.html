@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Courses - CampusConnect</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Styles remain unchanged */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+        }
+        .header a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+        .header a:hover {
+            background-color: #0056b3;
+        }
+        .search-bar {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        .search-bar input {
+            width: 100%;
+            max-width: 600px;
+            padding: 12px 20px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1em;
+        }
+        .search-bar button {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 8px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+        .search-bar button:hover {
+            background-color: #0056b3;
+        }
+        .course-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .course-card {
+            position: relative;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .course-card:hover {
+            transform: translateY(-5px);
+        }
+        .course-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        .course-info {
+            padding: 15px;
+        }
+        .course-info h3 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+        .course-info p {
+            color: #555;
+        }
+        .dropdown {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 30px;
+            background-color: white;
+            min-width: 120px;
+            border-radius: 4px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: black;
+            padding: 10px;
+            text-decoration: none;
+            display: block;
+        }
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+    </style>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Redirect to /courses if the query parameter exists
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('query')) {
+        window.history.replaceState(null, '', '/courses');
+    }
+
+    // Dropdown functionality
+    const dropdowns = document.querySelectorAll(".dropdown");
+
+    dropdowns.forEach(dropdown => {
+        let timer;
+        const dropdownContent = dropdown.querySelector(".dropdown-content");
+
+        dropdown.addEventListener("mouseenter", () => {
+            dropdownContent.style.display = "block";
+        });
+
+        dropdown.addEventListener("mouseleave", () => {
+            timer = setTimeout(() => {
+                dropdownContent.style.display = "none";
+            }, 3000);
+        });
+
+        dropdownContent.addEventListener("mouseenter", () => {
+            clearTimeout(timer);
+            dropdownContent.style.display = "block";
+        });
+
+        dropdownContent.addEventListener("mouseleave", () => {
+            dropdownContent.style.display = "none";
+        });
+    });
+});
+
+        function copyLink(courseSlug) {
+            const url = `${window.location.origin}/course/${courseSlug}`;
+            navigator.clipboard.writeText(url)
+                .then(() => alert('Course link copied to clipboard!'))
+                .catch(err => console.error('Failed to copy text: ', err));
+        }
+    </script>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">CampusConnect</div>
+        <div>
+            <a href="{{ url_for('upload_course_video') }}" class="upload-button">Upload New Course</a>
+            <a href="{{ url_for('my_courses') }}">My Courses</a>
+        </div>
+    </div>
+    <div class="container">
+        <h2>Available Courses</h2>
+
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <form method="GET" action="{{ url_for('course_search') }}">
+                <input type="text" name="query" placeholder="Search for courses..." value="{{ request.args.get('query', '') }}">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        {% if courses %}
+        <div class="course-list">
+            {% for course in courses %}
+                <div class="course-card">
+                    <a href="{{ url_for('view_course', slug=course.slug) }}">
+                        <img src="{{ url_for('static', filename='courses_thumbnail/' + course.thumbnail) }}" alt="{{ course.title }}">
+                        <div class="course-info">
+                            <h3>{{ course.title }}</h3>
+                            <p>{{ course.description }}</p>
+                            <p><strong>Category:</strong> {{ course.category }}</p>
+                            <p><strong>Uploaded By:</strong> {{ course.uploader.username }}</p>
+                            <p><strong>Upload Time:</strong> {{ course.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        </div>
+                    </a>
+                    <div class="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('enroll_in_course', course_id=course['id']) }}">Enroll</a>
+                            <a href="{{ url_for('enrolled_courses') }}">View Enrolled Courses</a>
+                            <a href="javascript:void(0);" onclick="copyLink('{{ course.slug }}')">Copy Link</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        
+        {% else %}
+            <p>No courses available.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

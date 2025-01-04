@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Course Contents</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+        }
+        h2 {
+            color: #333;
+        }
+        .content-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .content-item {
+            margin: 10px 0;
+        }
+        .pdf-viewer {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+        .preview-button {
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Review Course Resources</h2>
+    
+    <!-- Course Resources Section -->
+    <div class="content-section">
+        <h3>Course Resources</h3>
+        {% if course_resources %}
+            {% for resource in course_resources %}
+                <div class="content-item">
+                    {% if resource.filename.endswith('.pdf') %}
+                        <p><strong>{{ resource.title }}</strong> - 
+                        <span class="preview-button" onclick="previewPDF('{{ url_for('static', filename='course_resources/' + resource.filename) }}')">Preview PDF</span> | 
+                        <a href="{{ url_for('static', filename='course_resources/' + resource.filename) }}" target="_blank">Download</a></p>
+                    {% elif resource.filename.endswith('.jpg') or resource.filename.endswith('.png') %}
+                        <p><strong>{{ resource.title }}</strong></p>
+                        <img src="{{ url_for('static', filename='course_resources/' + resource.filename) }}" alt="{{ resource.title }}" style="max-width:100%; height:auto;">
+                    {% elif resource.filename.endswith('.mp4') %}
+                        <p><strong>{{ resource.title }}</strong></p>
+                        <video width="100%" controls>
+                            <source src="{{ url_for('static', filename='course_resources/' + resource.filename) }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No course resources available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Course Assignments Section -->
+    <div class="content-section">
+        <h3>Course Assignments</h3>
+        {% if course_assignments %}
+            {% for assignment in course_assignments %}
+                <div class="content-item">
+                    {% if assignment.filename.endswith('.pdf') %}
+                        <p><strong>{{ assignment.title }}</strong> - 
+                        <span class="preview-button" onclick="previewPDF('{{ url_for('static', filename='course_assignments/' + assignment.filename) }}')">Preview PDF</span> | 
+                        <a href="{{ url_for('static', filename='course_assignments/' + assignment.filename) }}" target="_blank">Download</a></p>
+                    {% elif assignment.filename.endswith('.jpg') or assignment.filename.endswith('.png') %}
+                        <p><strong>{{ assignment.title }}</strong></p>
+                        <img src="{{ url_for('static', filename='course_assignments/' + assignment.filename) }}" alt="{{ assignment.title }}" style="max-width:100%; height:auto;">
+                    {% elif assignment.filename.endswith('.mp4') %}
+                        <p><strong>{{ assignment.title }}</strong></p>
+                        <video width="100%" controls>
+                            <source src="{{ url_for('static', filename='course_assignments/' + assignment.filename) }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No course assignments available.</p>
+        {% endif %}
+    </div>
+
+    <!-- PDF Viewer -->
+    <div id="pdfViewerContainer" style="display:none; margin-top:20px;">
+        <h3>PDF Preview</h3>
+        <iframe id="pdfViewer" class="pdf-viewer"></iframe>
+    </div>
+</div>
+
+<script>
+    function previewPDF(pdfUrl) {
+        const pdfViewerContainer = document.getElementById("pdfViewerContainer");
+        const pdfViewer = document.getElementById("pdfViewer");
+        pdfViewer.src = pdfUrl;
+        pdfViewerContainer.style.display = "block";
+    }
+</script>
+
+</body>
+</html>

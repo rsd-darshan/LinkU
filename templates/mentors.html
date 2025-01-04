@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentorship Requests</title>
+    <style>
+        /* Basic styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .request-card, .mentorship-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .request-info, .mentorship-info {
+            display: flex;
+            align-items: center;
+        }
+        .request-info img, .mentorship-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .status {
+            font-weight: bold;
+        }
+        .status.ongoing { color: #28a745; }
+        .status.soon { color: #ffc107; }
+        .status.completed { color: #6c757d; }
+        .action-buttons button, .relation-button {
+            padding: 5px 10px;
+            margin-right: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            color: white;
+        }
+        .accept-button { background-color: #28a745; }
+        .reject-button { background-color: #dc3545; }
+        .relation-button { background-color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sent Requests -->
+        <h1>Mentorship Requests Sent</h1>
+        {% if sent_requests %}
+            <ul>
+                {% for request in sent_requests %}
+                    <li class="request-card">
+                        <div class="request-info">
+                            <a href="{{ url_for('profile', user_id=request.receiver.id) }}" target="_blank">
+                                <img src="{{ url_for('static', filename='profile_pics/' + (request.receiver.profile_pic or 'default.jpg')) }}" alt="Profile Picture">
+                            </a>
+                            <p>You sent a mentorship request to 
+                                <a href="{{ url_for('profile', user_id=request.receiver.id) }}" target="_blank">
+                                    {{ request.receiver.username }}
+                                </a>.
+                            </p>
+                            <p>Status: 
+                                <span class="status {{ request.status }}">{{ request.status.capitalize() }}</span>
+                            </p>
+                        </div>
+                        {% if request.status == 'accepted' %}
+                            {% set other_user_id = request.receiver.id %}
+                            {% if other_user_id in mentorship_user_ids %}
+                                <p>Mentorship established with {{ request.receiver.username }}.</p>
+                            {% else %}
+                                <div class="action-buttons">
+                                    <p>Select your relation with {{ request.receiver.username }}:</p>
+                                    <button class="relation-button" onclick="setRelation({{ request.id }}, 'mentor')">I am Mentor</button>
+                                    <button class="relation-button" onclick="setRelation({{ request.id }}, 'mentee')">I am Mentee</button>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You haven't sent any mentorship requests.</p>
+        {% endif %}
+
+        <!-- Received Requests -->
+        <h1>Mentorship Requests Received</h1>
+        {% if received_requests %}
+            <ul>
+                {% for request in received_requests %}
+                    <li class="request-card">
+                        <div class="request-info">
+                            <a href="{{ url_for('profile', user_id=request.sender.id) }}" target="_blank">
+                                <img src="{{ url_for('static', filename='profile_pics/' + (request.sender.profile_pic or 'default.jpg')) }}" alt="Profile Picture">
+                            </a>
+                            <p>
+                                <a href="{{ url_for('profile', user_id=request.sender.id) }}" target="_blank">
+                                    {{ request.sender.username }}
+                                </a> has sent a mentorship request to you.
+                            </p>
+                            <p>Status: 
+                                <span class="status {{ request.status }}">{{ request.status.capitalize() }}</span>
+                            </p>
+                        </div>
+                        {% if request.status == 'pending' %}
+                            <div class="action-buttons">
+                                <button class="accept-button" onclick="handleRequest({{ request.id }}, 'accept')">Accept</button>
+                                <button class="reject-button" onclick="handleRequest({{ request.id }}, 'reject')">Reject</button>
+                            </div>
+                        {% elif request.status == 'accepted' %}
+                            {% set other_user_id = request.sender.id %}
+                            {% if other_user_id in mentorship_user_ids %}
+                                <p>Mentorship established with {{ request.sender.username }}.</p>
+                            {% else %}
+                                <div class="action-buttons">
+                                    <p>Select your relation with {{ request.sender.username }}:</p>
+                                    <button class="relation-button" onclick="setRelation({{ request.id }}, 'mentor')">I am Mentor</button>
+                                    <button class="relation-button" onclick="setRelation({{ request.id }}, 'mentee')">I am Mentee</button>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No mentorship requests received.</p>
+        {% endif %}
+
+        <!-- Established Mentorships -->
+        <h1>Your Mentorships</h1>
+        {% if mentorships_as_mentor or mentorships_as_mentee %}
+            <ul>
+                {% for mentorship in mentorships_as_mentor %}
+                    <li class="mentorship-card">
+                        <div class="mentorship-info">
+                            <p>You are mentoring 
+                                <a href="{{ url_for('profile', user_id=mentorship.mentee.id) }}" target="_blank">
+                                    {{ mentorship.mentee.username }}
+                                </a>
+                            </p>
+                            {% if mentorship.start_date and mentorship.end_date %}
+                                <p>
+                                    {% if now >= mentorship.start_date and now <= mentorship.end_date %}
+                                        Status: <span class="status ongoing">Mentorship Ongoing</span>
+                                    {% elif now < mentorship.start_date %}
+                                        Status: <span class="status soon">Starts Soon</span>
+                                    {% else %}
+                                        Status: <span class="status completed">Mentored for {{ (mentorship.end_date - mentorship.start_date).days }} days</span> - {{ mentorship.start_date }} to {{ mentorship.end_date }}
+                                    {% endif %}
+                                </p>
+                            {% else %}
+                                <div>
+                                    <label for="start-date-{{ mentorship.id }}">Start Date:</label>
+                                    <input type="date" id="start-date-{{ mentorship.id }}">
+                                    
+                                    <label for="end-date-{{ mentorship.id }}">End Date:</label>
+                                    <input type="date" id="end-date-{{ mentorship.id }}">
+
+                                    <button onclick="saveDates({{ mentorship.id }})">Save</button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+                {% for mentorship in mentorships_as_mentee %}
+                    <li class="mentorship-card">
+                        <div class="mentorship-info">
+                            <p>
+                                <a href="{{ url_for('profile', user_id=mentorship.mentor.id) }}" target="_blank">
+                                    {{ mentorship.mentor.username }}
+                                </a> is mentoring you
+                            </p>
+                            {% if mentorship.start_date and mentorship.end_date %}
+                                <p>
+                                    {% if now >= mentorship.start_date and now <= mentorship.end_date %}
+                                        Status: <span class="status ongoing">Mentorship Ongoing</span>
+                                    {% elif now < mentorship.start_date %}
+                                        Status: <span class="status soon">Starts Soon</span>
+                                    {% else %}
+                                        Status: <span class="status completed">Mentored for {{ (mentorship.end_date - mentorship.start_date).days }} days</span> - {{ mentorship.start_date }} to {{ mentorship.end_date }}
+                                    {% endif %}
+                                </p>
+                            {% else %}
+                                <div>
+                                    <label for="start-date-mentee-{{ mentorship.id }}">Start Date:</label>
+                                    <input type="date" id="start-date-mentee-{{ mentorship.id }}">
+                                    
+                                    <label for="end-date-mentee-{{ mentorship.id }}">End Date:</label>
+                                    <input type="date" id="end-date-mentee-{{ mentorship.id }}">
+
+                                    <button onclick="saveDates({{ mentorship.id }})">Save</button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no mentorship relationships.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function handleRequest(requestId, action) {
+            fetch(`/handle_mentorship_request/${requestId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action })
+            }).then(response => {
+                if (response.status === 200) {
+                    alert(action === 'accept' ? 'Request accepted!' : 'Request rejected!');
+                    location.reload();
+                } else {
+                    alert('Error handling request.');
+                }
+            });
+        }
+
+        function setRelation(requestId, relation) {
+            fetch(`/set_mentorship_relation/${requestId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ relation: relation })
+            }).then(response => {
+                if (response.status === 200) {
+                    alert('Relation set successfully!');
+                    location.reload();
+                } else {
+                    alert('Error setting relation.');
+                }
+            });
+        }
+
+        function saveDates(mentorshipId) {
+            const startDate = document.getElementById(`start-date-${mentorshipId}`).value || document.getElementById(`start-date-mentee-${mentorshipId}`).value;
+            const endDate = document.getElementById(`end-date-${mentorshipId}`).value || document.getElementById(`end-date-mentee-${mentorshipId}`).value;
+
+            if (startDate && endDate) {
+                fetch(`/save_mentorship_dates/${mentorshipId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ start_date: startDate, end_date: endDate })
+                }).then(response => {
+                    if (response.status === 200) {
+                        alert('Dates saved successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error saving dates.');
+                    }
+                });
+            } else {
+                alert('Please select both start and end dates.');
+            }
+        }
+    </script>
+</body>
+</html>
