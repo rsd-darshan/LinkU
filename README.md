@@ -1,4 +1,3 @@
-"""
 LinkU: The Social Platform for Students and Mentors 🚀
 
 LinkU is a student-focused social media and mentorship platform designed to transform how students access education support and career guidance. 
@@ -29,13 +28,8 @@ Tech Stack:
 
 Launch Readiness:
 -------------------
-🌱 300+ early users ready  
+🌱 3000+ early users ready  
 🌐 Reddit & Discord college communities on standby  
 📈 MVP ready, investor presentations underway  
 
 Built With ❤️ by students, for students.
-
-"""
-
-if __name__ == "__main__":
-    print(__doc__)
