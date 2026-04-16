@@ -20,6 +20,7 @@ pnpm-debug.log*
 # env files
 .env
 .env*.local
+.env.new
 
 # prisma
 prisma/dev.db
