@@ -42,14 +42,6 @@ body {
   padding: 0;
 }
 
-html {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-html::-webkit-scrollbar {
-  display: none;
-}
-
 body {
   @apply text-slate-900 antialiased;
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI", Roboto, sans-serif;

@@ -8,10 +8,24 @@ const userStatuses = new Map<string, {
   typingTo?: string;
 }>();
 
+type UserStatusResponse = {
+  status: 'online' | 'offline' | 'away';
+  lastSeen: string;
+  isTyping: boolean;
+  typingTo?: string;
+};
+
+type UserStatusUpdateBody = {
+  userId?: string;
+  status?: 'online' | 'offline' | 'away';
+  isTyping?: boolean;
+  typingTo?: string;
+};
+
 // Heartbeat interval to clean up offline users
 setInterval(() => {
   const now = new Date();
-  for (const [userId, status] of userStatuses.entries()) {
+  for (const [_userId, status] of userStatuses.entries()) {
     if (status.status !== 'offline' && now.getTime() - status.lastSeen.getTime() > 30000) {
       status.status = 'offline';
     }
@@ -26,7 +40,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'User IDs required' }, { status: 400 });
   }
 
-  const statuses: Record<string, any> = {};
+  const statuses: Record<string, UserStatusResponse> = {};
   for (const userId of userIds) {
     const status = userStatuses.get(userId);
     if (status) {
@@ -50,7 +64,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as UserStatusUpdateBody;
     const { userId, status, isTyping, typingTo } = body;
 
     if (!userId) {
@@ -85,7 +99,7 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as Pick<UserStatusUpdateBody, 'userId'>;
     const { userId } = body;
 
     if (!userId) {

@@ -16,7 +16,7 @@ const primaryLinks = [
 
 const utilityLinks = [
   { href: "/notifications", label: "Notifications", title: "Connection requests and activity" },
-  { href: "/messages", label: "Chat", title: "Message your connections" },
+  { href: "/messages", label: "Messages", title: "Message your connections" },
   { href: "/profile", label: "Profile", title: "Your profile and settings" }
 ];
 
