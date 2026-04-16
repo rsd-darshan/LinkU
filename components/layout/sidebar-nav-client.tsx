@@ -8,14 +8,14 @@ type JoinedChannel = { channel: { id: string; name: string; slug: string } };
 const primaryLinks = [
   { href: "/", label: "Feed", title: "See posts from your channels and network" },
   { href: "/dashboard", label: "Dashboard", title: "Your overview and quick actions" },
-  { href: "/linku-ai", label: "LinkU-AI", title: "Admissions intelligence and comparison" },
+  { href: "/linku-ai", label: "LinkU-AI", title: "Admissions tools and comparisons" },
   { href: "/mentors", label: "Mentors", title: "Find and book mentors" },
-  { href: "/channels", label: "Channels", title: "Discover and join communities" },
-  { href: "/networking", label: "Connections", title: "Find peers and connect" }
+  { href: "/channels", label: "Channels", title: "Find and join communities" },
+  { href: "/networking", label: "Connections", title: "Meet peers and build your network" }
 ];
 
 const utilityLinks = [
-  { href: "/notifications", label: "Notifications", title: "Connection requests and activity" },
+  { href: "/notifications", label: "Notifications", title: "Requests, replies, and activity" },
   { href: "/messages", label: "Messages", title: "Message your connections" },
   { href: "/profile", label: "Profile", title: "Your profile and settings" }
 ];
@@ -61,7 +61,7 @@ export function SidebarNavClient({ joinedChannels }: { joinedChannels: JoinedCha
           <h2 id="sidebar-main-heading" className="flex items-center gap-1.5 text-title-sm text-slate-900">
             Navigate
           </h2>
-          <p className="mt-1 text-caption text-slate-500">Main sections — you are here when highlighted.</p>
+          <p className="mt-1 text-caption text-slate-500">Main areas of LinkU. Your current page is highlighted.</p>
           <nav className="mt-3 space-y-1" aria-label="Main navigation">
             {primaryLinks.map((link) => {
               const active = isActive(pathname, link.href);
@@ -89,7 +89,7 @@ export function SidebarNavClient({ joinedChannels }: { joinedChannels: JoinedCha
           </h2>
           <div className="mt-3 space-y-1">
             {joinedChannels.length === 0 ? (
-              <p className="text-caption text-slate-500">Join channels from the Channels page to see them here.</p>
+              <p className="text-caption text-slate-500">Join a channel to see it listed here.</p>
             ) : (
               joinedChannels.map((entry) => (
                 <Link
@@ -106,9 +106,9 @@ export function SidebarNavClient({ joinedChannels }: { joinedChannels: JoinedCha
         </section>
         <section className="card-app p-4" aria-labelledby="sidebar-quick-heading">
           <h2 id="sidebar-quick-heading" className="flex items-center gap-1.5 text-title-sm text-slate-900">
-            Quick access
+            Quick links
           </h2>
-          <nav className="mt-3 space-y-1" aria-label="Quick access">
+          <nav className="mt-3 space-y-1" aria-label="Quick links">
             {utilityLinks.map((link) => {
               const active = isActive(pathname, link.href);
               const Icon = iconMap[link.href];
