@@ -94,8 +94,8 @@ export function TopNav() {
   }
 
   return (
-    <header className="glass-header fixed inset-x-0 top-0 z-40 border-b" role="banner">
-      <div className="container-app flex h-14 min-h-touch items-center gap-2.5 sm:gap-3">
+    <header className="glass-header fixed inset-x-0 top-0 z-40 border-b shadow-[0_6px_24px_-20px_rgba(15,23,42,0.45)]" role="banner">
+      <div className="container-app flex h-16 min-h-touch items-center gap-2.5 sm:gap-3">
         <Link
           href="/"
           className="focus-ring flex min-w-fit items-center gap-2 rounded-lg px-1 py-2 text-body-sm font-semibold text-slate-900"
@@ -133,7 +133,7 @@ export function TopNav() {
             </kbd>
           ) : null}
         </form>
-        <nav className="hidden items-center gap-1.5 text-body-sm lg:flex" aria-label="Main navigation">
+        <nav className="hidden items-center gap-2 text-body-sm lg:flex" aria-label="Main navigation">
           {links.map((link) => (
             <Link
               key={link.href}

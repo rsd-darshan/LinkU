@@ -10,6 +10,7 @@
 
 # misc
 .DS_Store
+.cursor
 
 # logs
 npm-debug.log*
