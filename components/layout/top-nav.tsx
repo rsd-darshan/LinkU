@@ -119,7 +119,7 @@ export function TopNav() {
           <input
             ref={searchInputRef}
             type="search"
-            placeholder="Search people, posts & channels…"
+            placeholder="Search people, posts, or channels"
             className="input-app h-11 min-h-0 w-full rounded-pill border-slate-300 bg-slate-50 py-2.5 pl-11 pr-4 text-body-sm placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-500/20"
             value={query}
             onChange={(e) => setQuery(e.target.value)}

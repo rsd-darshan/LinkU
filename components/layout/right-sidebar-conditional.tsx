@@ -14,12 +14,12 @@ export function RightSidebarConditional() {
     <aside className="hidden xl:block" aria-label="Right sidebar">
       <div className="sticky top-14 space-y-4">
         <section className="card-app p-4" aria-labelledby="what-you-can-do-heading">
-          <h2 id="what-you-can-do-heading" className="text-title-sm font-semibold text-slate-900">What you can do</h2>
-          <p className="mt-1 text-caption text-slate-500">Jump to common tasks.</p>
+          <h2 id="what-you-can-do-heading" className="text-title-sm font-semibold text-slate-900">Try this next</h2>
+          <p className="mt-1 text-caption text-slate-500">Quick shortcuts for common tasks.</p>
           <ul className="mt-3 space-y-2" role="list">
             <li>
               <Link href="/mentors" className="focus-ring block rounded-input px-3 py-2 text-body-sm text-slate-700 transition hover:bg-white/80">
-                Find & book mentors
+                Find mentors and book a session
               </Link>
             </li>
             <li>
@@ -29,7 +29,7 @@ export function RightSidebarConditional() {
             </li>
             <li>
               <Link href="/messages" className="focus-ring block rounded-input px-3 py-2 text-body-sm text-slate-700 transition hover:bg-white/80">
-                Chat with connections
+                Message your connections
               </Link>
             </li>
             <li>
@@ -53,7 +53,7 @@ export function RightSidebarConditional() {
             href="/notifications"
             className="btn-app-secondary mt-3"
           >
-            Open notifications
+            View notifications
           </Link>
         </section>
         <section className="card-app p-4" aria-labelledby="tips-heading">

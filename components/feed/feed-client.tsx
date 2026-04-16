@@ -602,7 +602,7 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
           <section className="card-app flex flex-wrap items-center justify-between gap-3.5">
             <div>
               <p className="text-sm font-semibold text-slate-900">Community Feed</p>
-              <p className="text-xs text-slate-500">Personalized from your activity, interests, and connections.</p>
+              <p className="text-xs text-slate-500">Tailored to your interests and connections.</p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -799,7 +799,7 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
             </article>
           ))}
           {!loading && !error && posts.length === 0 ? (
-            <StateMessage variant="empty" title="No posts yet" description="Publish the first one to get the conversation started." />
+            <StateMessage variant="empty" title="Nothing posted yet" description="Be the first to post and start the conversation." />
           ) : null}
         </main>
 
