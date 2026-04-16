@@ -41,7 +41,6 @@ export async function PUT(request: Request) {
     const ecasJson = toJson(data.ecasJson ?? []);
     const honorsJson = toJson(data.honorsJson ?? []);
     const awardsJson = toJson(data.awardsJson ?? []);
-    const otherScoresJson = Array.isArray(data.otherScoresJson) ? data.otherScoresJson : [];
     const hooksJson = data.hooksJson != null ? toJson(data.hooksJson) : [];
 
     const profile = await prisma.userGlobalProfile.upsert({
@@ -54,7 +53,6 @@ export async function PUT(request: Request) {
         ecasJson: ecasJson as object,
         honorsJson: honorsJson as object,
         awardsJson: awardsJson as object,
-        otherScoresJson: otherScoresJson as object,
         intendedMajor: data.intendedMajor ?? null,
         personalEssay: data.personalEssay ?? null,
         lorRating: data.lorRating ?? null,
@@ -68,7 +66,6 @@ export async function PUT(request: Request) {
         ecasJson: ecasJson as object,
         honorsJson: honorsJson as object,
         awardsJson: awardsJson as object,
-        otherScoresJson: otherScoresJson as object,
         intendedMajor: data.intendedMajor ?? undefined,
         personalEssay: data.personalEssay ?? undefined,
         lorRating: data.lorRating ?? undefined,

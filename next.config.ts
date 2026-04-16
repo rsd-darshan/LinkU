@@ -43,32 +43,6 @@ const nextConfig: NextConfig = {
         ]
       }
     ]
-  },
-  // Handle Chrome extension hydration issues
-  webpack: (config: any, { isServer }: any) => {
-    if (isServer) {
-      return {
-        ...config,
-        resolve: {
-          alias: {
-            ...config.resolve?.alias,
-          },
-          plugins: [
-            ...(config.resolve?.plugins || []),
-            // Remove Chrome extension attributes that cause hydration
-            new (class RemoveChromeExtensionIds {
-              apply(compiler: any) {
-                compiler.hooks.compilation.tap('RemoveChromeExtensionIds', (compilation: any) => {
-                  compilation.mainTemplate = compilation.mainTemplate?.replace(/__gchrome_uniqueid="\d+"/g, '');
-                  compilation.mainTemplate = compilation.mainTemplate?.replace(/data-gchrome_uniqueid="[^"]*"/g, '');
-                });
-              }
-            })
-          ]
-        }
-      };
-    }
-    return config;
   }
 };
 
