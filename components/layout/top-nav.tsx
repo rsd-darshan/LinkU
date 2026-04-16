@@ -69,7 +69,7 @@ export function TopNav() {
   ];
   const utilityLinks = [
     { href: "/notifications", label: "Notifications", icon: <BellIcon /> },
-    { href: "/messages", label: "Chat", icon: <ChatIcon /> },
+    { href: "/messages", label: "Messages", icon: <ChatIcon /> },
     { href: "/profile", label: "Profile", icon: <UserIcon /> }
   ];
 

@@ -18,13 +18,14 @@ export function LottiePlayer({
   width = 300,
   height = 300,
 }: LottiePlayerProps) {
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(
+    () => typeof document !== "undefined" && Boolean(document.querySelector(`script[src="${DOTLOTTIE_SCRIPT}"]`))
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const existing = document.querySelector(`script[src="${DOTLOTTIE_SCRIPT}"]`);
     if (existing) {
-      setReady(true);
       return;
     }
     const script = document.createElement("script");

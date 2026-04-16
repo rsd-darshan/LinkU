@@ -8,13 +8,14 @@ const LOTTIE_SRC =
   "https://lottie.host/2723e1cd-1987-4972-bf6e-48ed5ff1b2b6/AqBoUOyZlG.lottie";
 
 export function LottieHero() {
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(
+    () => typeof document !== "undefined" && Boolean(document.querySelector(`script[src="${DOTLOTTIE_SCRIPT}"]`))
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const existing = document.querySelector(`script[src="${DOTLOTTIE_SCRIPT}"]`);
     if (existing) {
-      setReady(true);
       return;
     }
     const script = document.createElement("script");
