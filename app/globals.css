@@ -54,9 +54,8 @@ body {
   @apply text-slate-900 antialiased;
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
   background:
-    radial-gradient(1200px 540px at -8% -18%, var(--color-page-glow), transparent 64%),
-    radial-gradient(900px 520px at 110% 0%, rgba(201, 230, 255, 0.3), transparent 58%),
-    linear-gradient(180deg, #f6f9ff 0%, var(--color-page-bg) 62%, #e8eefb 100%);
+    radial-gradient(960px 420px at -8% -18%, rgba(167, 190, 255, 0.15), transparent 68%),
+    linear-gradient(180deg, #f8fbff 0%, #eef3fc 58%, #e9effa 100%);
 }
 
 .container-app {
@@ -100,7 +99,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: -1;
-  opacity: 0.18;
+  opacity: 0.08;
   background-image: linear-gradient(rgba(var(--route-accent), 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(var(--route-accent), 0.03) 1px, transparent 1px);
   background-size: 24px 24px;
@@ -108,7 +107,6 @@ body {
 }
 
 .route-hero {
-  /* Remove the visible thin border/lining around hero boxes */
   @apply relative overflow-hidden rounded-card-lg px-5 py-5 sm:px-6 sm:py-6;
   background: linear-gradient(125deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.72));
   border-width: 0;
@@ -141,12 +139,9 @@ body {
 
 .route-badge {
   @apply inline-flex min-h-[28px] items-center rounded-pill border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em];
-  /* Remove dark-ish border/lining */
   border-width: 0;
   border-color: transparent;
-  /* Reduce the "too white" feel */
   background: rgba(255, 255, 255, 0.35);
-  /* "Shadow line" instead of border (avoids dark/ugly edge) */
   box-shadow:
     0 0 0 1px rgba(148, 163, 184, 0.22) inset,
     0 1px 0 rgba(255, 255, 255, 0.45) inset;
@@ -163,7 +158,6 @@ body {
   border-color: rgba(var(--route-accent), 0.1);
 }
 .route-shell .chip-app {
-  /* Keep chip styling consistent across all route-shell pages */
   border-color: rgba(var(--route-accent), 0.24);
   background: rgba(255, 255, 255, 0.42);
 }
@@ -357,7 +351,6 @@ body {
 
 .glass-panel {
   background: var(--color-surface);
-  /* Remove the visible "black lining" around cards */
   border: 0;
   box-shadow: var(--shadow-card);
   backdrop-filter: blur(18px);
@@ -383,7 +376,6 @@ body {
   @apply rounded-card border p-5 sm:p-6 transition duration-normal ease-smooth;
   background: var(--color-surface-strong);
   border-color: var(--color-border-soft);
-  /* Some browsers/OS themes make thin borders look dark/black */
   border-width: 0;
   border-color: transparent;
   box-shadow: var(--shadow-soft);
@@ -458,12 +450,9 @@ body {
 
 .chip-app {
   @apply inline-flex min-h-[36px] items-center rounded-full border px-3 py-1 text-xs font-medium;
-  /* Remove the 1px lining around pills */
   border-width: 0;
   border-color: transparent;
-  /* Make the pill less white */
   background: rgba(255, 255, 255, 0.42);
-  /* "Shadow line" outline */
   box-shadow:
     0 0 0 1px rgba(148, 163, 184, 0.22) inset,
     0 1px 0 rgba(255, 255, 255, 0.55) inset;
@@ -484,7 +473,6 @@ body {
 }
 .chip-app.active {
   @apply bg-brand-600 text-white border-brand-600;
-  /* keep active pill clean (no border edge) */
   border-width: 0;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.22) inset,
@@ -492,7 +480,6 @@ body {
 }
 .chip-app.active:hover,
 .chip-app.active:focus-visible {
-  /* frosted overlay on top of active color */
   background: rgba(37, 99, 235, 0.92);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
