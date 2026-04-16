@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: linku-postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: linku
+      POSTGRES_PASSWORD: linku
+      POSTGRES_DB: linku
+    volumes:
+      - linku_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  linku_postgres_data:

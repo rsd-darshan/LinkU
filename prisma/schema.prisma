@@ -1,0 +1,565 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  MENTOR
+  ADMIN
+}
+
+enum MentorVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum BookingStatus {
+  UPCOMING
+  COMPLETED
+  CANCELED
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum MessageType {
+  TEXT
+  SHARED_POST
+}
+
+// --- LinkU-AI enums ---
+enum RawDataSourceType {
+  CDS
+  WEBSITE
+  IPEDS
+  NCES
+  LINKU_OUTCOMES
+}
+
+enum ApplicationRound {
+  ED
+  ED2
+  EA
+  REA
+  RD
+  ROLLING
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+}
+
+enum EssayType {
+  PERSONAL
+  SUPPLEMENT
+}
+
+enum AdmissionsResult {
+  ACCEPTED
+  REJECTED
+  WAITLIST
+}
+
+model User {
+  id             String    @id @default(cuid())
+  clerkId        String    @unique
+  email          String    @unique
+  role           Role
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  studentProfile StudentProfile?
+  mentorProfile  MentorProfile?
+  adminActions   Booking[]       @relation("AdminBookingActions")
+
+  studentBookings Booking[] @relation("StudentBookings")
+  mentorBookings  Booking[] @relation("MentorBookings")
+
+  writtenReviews  Review[] @relation("WrittenReviews")
+  receivedReviews Review[] @relation("ReceivedReviews")
+
+  sentConnectionRequests     Connection[] @relation("ConnectionRequester")
+  receivedConnectionRequests Connection[] @relation("ConnectionReceiver")
+
+  sentMessages     Message[] @relation("MessageSender")
+  receivedMessages Message[] @relation("MessageReceiver")
+
+  transactions Transaction[]
+  createdChannels Channel[]      @relation("ChannelCreator")
+  channelMemberships ChannelMember[]
+  posts            Post[]
+  comments         Comment[]
+  postUpvotes      PostUpvote[]
+
+  // LinkU-AI
+  userGlobalProfile     UserGlobalProfile?
+  userUniversityApplications UserUniversityApplication[]
+  lors                  Lor[]
+  essayAnalyses         EssayAnalysis[]
+  admissionsOutcomes    AdmissionsOutcome[]
+  approvedUniversityStats UniversityStatistics[] @relation("ApprovedByAdmin")
+
+  @@index([role])
+}
+
+model Channel {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  universityName String?
+  description    String?
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  createdBy User            @relation("ChannelCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  members   ChannelMember[]
+  posts     Post[]
+
+  @@index([createdAt])
+  @@index([universityName])
+}
+
+model ChannelMember {
+  id        String   @id @default(cuid())
+  channelId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, userId])
+  @@index([userId, createdAt])
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  channelId String?
+  authorId  String
+  title     String
+  body      String
+  mediaUrls String[] @default([])
+  upvotes   Int      @default(0)
+  shareCount Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  channel Channel? @relation(fields: [channelId], references: [id], onDelete: SetNull)
+  author  User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  upvoteRecords PostUpvote[]
+  sharedMessages Message[] @relation("PostShares")
+
+  @@index([channelId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model PostUpvote {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId, createdAt])
+  @@index([postId, createdAt])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  parentId  String?
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post    Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author  User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("CommentReplies")
+
+  @@index([postId, createdAt])
+  @@index([authorId, createdAt])
+  @@index([parentId, createdAt])
+}
+
+model StudentProfile {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  fullName           String
+  country            String
+  gpa                Decimal  @db.Decimal(3, 2)
+  satScore           Int?
+  actScore           Int?
+  intendedMajor      String
+  targetUniversities String[]
+  bio                String?
+  achievements       String[]
+  isVisible          Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([intendedMajor, country])
+}
+
+model MentorProfile {
+  id                  String                   @id @default(cuid())
+  userId              String                   @unique
+  fullName            String
+  country             String
+  university          String
+  major               String
+  graduationYear      Int
+  acceptedUniversities String[]
+  scholarships        String[]
+  hourlyRateCents     Int
+  availableTimeSlots  DateTime[]
+  verificationStatus  MentorVerificationStatus @default(PENDING)
+  verificationBadge   Boolean                  @default(false)
+  averageRating       Decimal                  @default(0) @db.Decimal(3, 2)
+  reviewCount         Int                      @default(0)
+  bio                 String?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([major, country])
+  @@index([verificationStatus])
+}
+
+model Booking {
+  id                String       @id @default(cuid())
+  studentId         String
+  mentorId          String
+  durationMinutes   Int
+  startTime         DateTime
+  endTime           DateTime
+  totalAmountCents  Int
+  platformFeeCents  Int
+  mentorPayoutCents Int
+  stripeSessionId   String?      @unique
+  status            BookingStatus @default(UPCOMING)
+  completedAt       DateTime?
+  canceledAt        DateTime?
+  adminActionById   String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  student User  @relation("StudentBookings", fields: [studentId], references: [id], onDelete: Cascade)
+  mentor  User  @relation("MentorBookings", fields: [mentorId], references: [id], onDelete: Cascade)
+  adminActionBy User? @relation("AdminBookingActions", fields: [adminActionById], references: [id], onDelete: SetNull)
+
+  review      Review?
+  transaction Transaction?
+  messages    Message[]
+
+  @@index([studentId, status])
+  @@index([mentorId, status])
+  @@index([startTime, endTime])
+  @@unique([mentorId, startTime, endTime])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  reviewerId String
+  mentorId   String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reviewer User    @relation("WrittenReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+  mentor   User    @relation("ReceivedReviews", fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@index([mentorId])
+  @@index([rating])
+}
+
+model Connection {
+  id          String           @id @default(cuid())
+  requesterId String
+  receiverId  String
+  status      ConnectionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  requester User @relation("ConnectionRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver  User @relation("ConnectionReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  @@unique([requesterId, receiverId])
+  @@index([requesterId, status])
+  @@index([receiverId, status])
+}
+
+model Message {
+  id           String      @id @default(cuid())
+  senderId     String
+  receiverId   String
+  body         String
+  messageType  MessageType @default(TEXT)
+  postId       String?
+  connectionId String?
+  bookingId    String?
+  createdAt    DateTime    @default(now())
+
+  sender   User        @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User        @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  post     Post?       @relation("PostShares", fields: [postId], references: [id], onDelete: SetNull)
+  connection Connection? @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  booking    Booking?    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([senderId, receiverId, createdAt])
+  @@index([connectionId, createdAt])
+  @@index([bookingId, createdAt])
+  @@index([postId, createdAt])
+}
+
+model Transaction {
+  id                    String   @id @default(cuid())
+  bookingId             String   @unique
+  userId                String
+  stripePaymentIntentId String   @unique
+  grossAmountCents      Int
+  platformFeeCents      Int
+  netAmountCents        Int
+  currency              String   @default("usd")
+  createdAt             DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// --- LinkU-AI models ---
+
+model University {
+  id                  String   @id @default(cuid())
+  name                String
+  slug                String   @unique
+  country             String?
+  state               String?
+  supplementPromptsJson Json?  // array of strings: university-specific essay prompts
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  rawData           UniversityRawData[]
+  statistics        UniversityStatistics[]
+  statisticsHistory UniversityStatisticsHistory[]
+  majorMultipliers  UniversityMajorMultiplier[]
+  values            UniversityValues?
+  applications      UserUniversityApplication[]
+  essayAnalyses     EssayAnalysis[]
+  admissionsOutcomes AdmissionsOutcome[]
+
+  @@index([slug])
+}
+
+model UniversityRawData {
+  id            String             @id @default(cuid())
+  universityId  String
+  sourceType    RawDataSourceType
+  year          Int
+  rawJson       Json
+  createdAt     DateTime           @default(now())
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId, sourceType, year])
+}
+
+model UniversityStatistics {
+  id                         String    @id @default(cuid())
+  universityId               String
+  year                       Int
+  gpa25                      Decimal?  @db.Decimal(4, 2)
+  gpa50                      Decimal?  @db.Decimal(4, 2)
+  gpa75                      Decimal?  @db.Decimal(4, 2)
+  sat25                      Int?
+  sat50                      Int?
+  sat75                      Int?
+  acceptanceRate             Decimal?  @db.Decimal(5, 2)
+  internationalAcceptanceRate Decimal? @db.Decimal(5, 2)
+  needBlind                  Boolean   @default(false)
+  needAwareSeverity          Int?     // 1-3
+  edBoostFactor              Decimal?  @db.Decimal(3, 2)
+  isActive                   Boolean   @default(false)
+  dataConfidenceScore        Int?     // 0-100
+  approvedAt                 DateTime?
+  approvedById               String?
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  approvedBy User?       @relation("ApprovedByAdmin", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@unique([universityId, year])
+  @@index([universityId, isActive])
+}
+
+model UniversityStatisticsHistory {
+  id                         String   @id @default(cuid())
+  universityId               String
+  year                       Int
+  gpa25                      Decimal?  @db.Decimal(4, 2)
+  gpa50                      Decimal?  @db.Decimal(4, 2)
+  gpa75                      Decimal?  @db.Decimal(4, 2)
+  sat25                      Int?
+  sat50                      Int?
+  sat75                      Int?
+  acceptanceRate             Decimal?  @db.Decimal(5, 2)
+  internationalAcceptanceRate Decimal? @db.Decimal(5, 2)
+  needBlind                  Boolean   @default(false)
+  needAwareSeverity          Int?
+  edBoostFactor              Decimal?  @db.Decimal(3, 2)
+  dataConfidenceScore        Int?
+  effectiveAt                DateTime @default(now())
+  createdAt                  DateTime @default(now())
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId, year, effectiveAt])
+}
+
+model UniversityMajorMultiplier {
+  id           String   @id @default(cuid())
+  universityId String
+  majorName    String
+  multiplier   Decimal  @db.Decimal(3, 2) // 0.8 - 1.3
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@unique([universityId, majorName])
+  @@index([universityId])
+}
+
+model UniversityValues {
+  id           String   @id @default(cuid())
+  universityId String   @unique
+  valuesJson   Json     // e.g. ["Intellectual curiosity", "Community engagement"]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+}
+
+model UserGlobalProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  gpa             Decimal? @db.Decimal(4, 2)
+  sat             Int?
+  schoolContext   String?
+  ecasJson        Json     @default("[]")
+  honorsJson      Json     @default("[]")
+  awardsJson      Json     @default("[]")
+  otherScoresJson Json     @default("[]") // e.g. [{ name: "AP Calculus BC", value: "5" }]
+  intendedMajor   String?
+  personalEssay   String?
+  lorRating       Int?     // 1-10
+  hooksJson       Json?    @default("[]")
+  resumeUrl       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model UserUniversityApplication {
+  id                      String            @id @default(cuid())
+  userId                  String
+  universityId            String
+  round                   ApplicationRound
+  financialAidRequest     Boolean?
+  supplementEssay         String?           // legacy single essay; prefer supplementEssaysJson
+  supplementEssaysJson    Json?             // array of { heading, wordLimit, answer }
+  universitySpecificQuestions Json?
+  portfolioLinks          String[]          @default([])
+  status                  ApplicationStatus @default(DRAFT)
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, universityId])
+  @@index([userId])
+  @@index([universityId])
+}
+
+model Lor {
+  id                 String   @id @default(cuid())
+  userId             String
+  teacherName        String
+  strengthRating     Int      // 1-10
+  relationshipRating Int      // 1-10
+  credibilityRating  Int      // 1-10
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EssayAnalysis {
+  id                    String    @id @default(cuid())
+  userId                String
+  universityId          String?
+  essayType             EssayType
+  contentHash           String?
+  coherence             Int?      // 1-10 from AI
+  narrativeDepth        Int?
+  originality           Int?
+  alignment             Int?      // value alignment 1-10
+  essayScore0_100       Int?
+  valueAlignmentScore0_100 Int?
+  rawResponseJson       Json?
+  createdAt             DateTime  @default(now())
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([universityId])
+}
+
+model AdmissionsOutcome {
+  id           String           @id @default(cuid())
+  userId       String?
+  universityId String
+  profileVector Json
+  result       AdmissionsResult
+  createdAt    DateTime         @default(now())
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  user       User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([universityId])
+  @@index([userId])
+}
