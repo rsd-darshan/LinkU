@@ -4,6 +4,7 @@ import { badRequest, handleApiError, ok } from "@/lib/http";
 import { sanitizeText } from "@/lib/sanitize";
 import { getPresignedUploadUrl } from "@/services/upload";
 import { presignSchema } from "@/lib/validation";
+import { getS3Config } from "@/lib/env";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,10 +19,11 @@ export async function POST(req: NextRequest) {
     const safeName = sanitizeText(fileName).replace(/\s+/g, "-");
     const key = `users/${currentUser.id}/${Date.now()}-${safeName}`;
     const uploadUrl = await getPresignedUploadUrl(key, contentType);
+    const s3Config = getS3Config();
     const publicBaseUrl =
-      process.env.S3_PUBLIC_BASE_URL ||
-      (process.env.S3_BUCKET_NAME && process.env.S3_REGION
-        ? `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.S3_REGION}.amazonaws.com`
+      s3Config.publicBaseUrl ||
+      (s3Config.bucket && s3Config.region
+        ? `https://${s3Config.bucket}.s3.${s3Config.region}.amazonaws.com`
         : null);
 
     return ok({ key, uploadUrl, publicUrl: publicBaseUrl ? `${publicBaseUrl}/${key}` : null });

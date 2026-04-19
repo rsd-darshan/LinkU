@@ -5,8 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { bookingCreateSchema } from "@/lib/validation";
 import { assertMentorAvailable, calculateBookingAmounts } from "@/services/booking";
 import { getStripeClient } from "@/services/stripe";
+import { getPublicAppUrl } from "@/lib/env";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const APP_URL = getPublicAppUrl();
 
 export async function GET() {
   try {

@@ -3,12 +3,13 @@ import { headers } from "next/headers";
 import { badRequest, handleApiError, ok } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 import { getStripeClient } from "@/services/stripe";
+import { requireEnv } from "@/lib/env";
 
 export async function POST(req: Request) {
   try {
     const body = await req.text();
     const sig = (await headers()).get("stripe-signature");
-    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    const secret = requireEnv("STRIPE_WEBHOOK_SECRET");
     if (!sig || !secret) return badRequest("Missing webhook signature");
     const stripe = getStripeClient();
 

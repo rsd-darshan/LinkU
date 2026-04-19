@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { handleApiError, notFound, ok } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 import { rankMentorMatches } from "@/services/matching";
+import { getMatchWeightsFromEnv } from "@/lib/env";
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,6 +11,9 @@ export async function GET(req: NextRequest) {
     const major = req.nextUrl.searchParams.get("major") || undefined;
     const country = req.nextUrl.searchParams.get("country") || undefined;
     const targetUniversity = req.nextUrl.searchParams.get("targetUniversity") || undefined;
+    const includeBreakdown = req.nextUrl.searchParams.get("includeBreakdown") === "true";
+    const limitRaw = Number(req.nextUrl.searchParams.get("limit") || 5);
+    const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(limitRaw, 20)) : 5;
     const minRateCents = Number(req.nextUrl.searchParams.get("minRateCents") || 0) || 0;
     const maxRateRaw = req.nextUrl.searchParams.get("maxRateCents");
     const maxRateCents = maxRateRaw ? Number(maxRateRaw) : undefined;
@@ -37,11 +41,15 @@ export async function GET(req: NextRequest) {
       mentorAvgStudentGpa.set(mentor.id, null);
     });
 
-    const ranked = rankMentorMatches(student, mentors, mentorAvgStudentGpa);
+    const ranked = rankMentorMatches(student, mentors, mentorAvgStudentGpa, {
+      limit,
+      weights: getMatchWeightsFromEnv()
+    });
     return ok({
       recommendations: ranked.map((item) => ({
         score: item.score,
-        mentor: item.mentor
+        mentor: item.mentor,
+        ...(includeBreakdown ? { breakdown: item.breakdown } : {})
       })),
       total: mentors.length
     });

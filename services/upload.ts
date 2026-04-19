@@ -1,20 +1,27 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getS3Config } from "@/lib/env";
 
-const REGION = process.env.S3_REGION || "us-east-1";
-const BUCKET = process.env.S3_BUCKET_NAME || "";
+const config = getS3Config();
 
 const s3 = new S3Client({
-  region: REGION,
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || ""
-  }
+  region: config.region,
+  ...(config.accessKeyId && config.secretAccessKey
+    ? {
+        credentials: {
+          accessKeyId: config.accessKeyId,
+          secretAccessKey: config.secretAccessKey
+        }
+      }
+    : {})
 });
 
 export async function getPresignedUploadUrl(key: string, contentType: string) {
+  if (!config.bucket) {
+    throw new Error("Missing S3_BUCKET_NAME");
+  }
   const command = new PutObjectCommand({
-    Bucket: BUCKET,
+    Bucket: config.bucket,
     Key: key,
     ContentType: contentType
   });
