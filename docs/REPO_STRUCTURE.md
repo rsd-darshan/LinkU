@@ -1,6 +1,6 @@
 # Repository Structure
 
-This repository follows domain-oriented boundaries while keeping Next.js conventions intact.
+This repository follows domain-oriented boundaries while keeping Next.js App Router conventions intact.
 
 ```text
 app/
@@ -18,6 +18,10 @@ lib/                    # cross-cutting infrastructure and shared utilities
 prisma/                 # schema, migrations, seed
 docs/                   # architecture, recommendations, readiness docs
 ```
+
+Notes:
+
+- Routing uses `app/` (App Router) only; there is no active `pages/` router layer.
 
 ## Naming Conventions
 
