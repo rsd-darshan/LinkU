@@ -5,78 +5,76 @@
 
 ## Problem
 
-Students making high-stakes education and career decisions are forced to navigate fragmented information, low-context advice, and transactional counseling. The result is slow decision cycles, poor-fit applications, and missed opportunities.
+Millions of students make life-defining education decisions with fragmented advice, generic content, and no real accountability. The process is stressful, expensive, and often leads to poor-fit outcomes.
 
 ## Insight
 
-Most existing platforms solve one slice only: content, courses, or networking. They do not connect trusted mentorship, execution workflows, and accountability loops in one system.
+Students do not need "more information." They need a trusted system that helps them choose faster, execute better, and stay accountable.
 
 ## Solution
 
 LinkU combines:
 
-- **Mentorship marketplace** for verified mentor discovery and paid sessions
-- **Execution workflows** for booking, reviews, messaging, and follow-through
-- **Campus social layer** through channels, feed, and peer knowledge sharing
-- **Admissions intelligence (LinkU-AI)** for profile fit and application guidance
+- **Verified mentorship** so students learn from people who have already done it
+- **Execution layer** for planning sessions, tracking decisions, and follow-through
+- **Community layer** where students learn from peers and shared journeys
+- **AI support layer** for profile fit, application direction, and smarter next steps
 
 ## Product Vision
 
-LinkU is designed as a full operating layer for student guidance: a blend of professional graph, learning pathways, and mentor commerce. The long-term direction is to become the default destination where students decide, plan, and execute major academic moves with measurable outcomes.
+LinkU is being built as the default operating system for student guidance - where discovery, decision-making, and execution happen in one place.
+
+Think of it as:
+
+- trusted mentorship marketplace
+- student-focused professional network
+- guided execution product for real outcomes
 
 ## Features
 
-- Verified mentor discovery with weighted match ranking
-- Paid booking flow with Stripe Checkout + webhook reconciliation
-- Messaging threads and student networking graph
-- Feed/channels for community knowledge and Q&A loops
-- Role-based admin controls for moderation and operations
-- LinkU-AI workflows for application fit and admissions support
+- Personalized mentor discovery and matching
+- Session planning and booking workflow
+- Student networking, feed, and channels
+- Messaging for mentor-student coordination
+- Admin controls for quality and trust
+- LinkU-AI experiences for guidance acceleration
 
-## System Design
+## Why Now
 
-Architecture and data-flow details live in [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md).
+- Education decisions are getting more competitive and expensive.
+- Students increasingly trust peer-led and mentor-led guidance over institutions.
+- AI can reduce research time, but students still need human context and accountability.
 
-Quick view:
+## Business Model
 
-```text
-Client (Next.js App Router)
-  -> Route Handlers (/app/api/*)
-      -> Service Layer (/services/*)
-          -> Prisma ORM
-              -> PostgreSQL
-  -> External Systems: Clerk (auth), Stripe (payments), S3 (uploads)
-```
+- Session-based marketplace revenue
+- Future subscription tiers for students and mentors
+- Premium AI guidance workflows over time
 
-Primary booking flow:
+## Go-To-Market
 
-```text
-Student -> Discover Mentor -> Create Booking Draft -> Stripe Checkout
-   -> Stripe Webhook -> Transaction Upsert + Booking Confirmed -> Session Delivery
-```
+- Start with high-intent students (applications, transfers, scholarships).
+- Grow mentor supply through successful alumni and verified outcomes.
+- Use community content loops (channels/feed) to drive organic demand.
 
-## Tech Stack
+## Moat
 
-- **Next.js App Router + React + TypeScript**: fast iteration with type-safe full-stack boundaries
-- **Prisma + PostgreSQL**: relational modeling for marketplace + social graph consistency
-- **Clerk**: secure auth lifecycle and role-aware access control
-- **Stripe**: trusted payment rails and webhook-driven financial state changes
-- **S3 Presigned Uploads**: direct media upload path with minimal backend load
-- **Tailwind CSS**: consistent UI system with high implementation speed
-- **Vitest + GitHub Actions CI**: enforce reliability via test/type/lint/build gates
+- Trust graph between students and mentors
+- Outcome-driven interaction data across journeys
+- Tight loop between community insight, human mentorship, and AI support
 
 ## Tradeoffs
 
-- No distributed queue/event bus yet; synchronous route flow keeps complexity low in early stage.
-- Realtime messaging is functional but not fully production-hardened for very high concurrency.
-- Mentor matching is explainable and tunable, but intentionally simple compared to ML-heavy ranking systems.
-- Coverage is strong for utilities and ranking logic, but integration/E2E tests should expand further.
+- Focused on end-to-end guidance experience before adding many edge features.
+- Prioritizing quality mentors and trust over fast but low-quality marketplace expansion.
+- Keeping core matching explainable before moving to heavier black-box ML.
 
 ## Future Roadmap
 
-- **AI matching:** intent-aware recommendations using profile outcomes and interaction signals
-- **Marketplace depth:** mentor bundles, subscriptions, escrow-like payout flows, retention analytics
-- **Scaling:** async jobs, caching strategy, search index, observability + SLO-driven operations
+- AI matching informed by outcomes and behavioral signals
+- Mentor products (bundles, cohort sessions, recurring programs)
+- Institutional and partnership channels
+- Deeper analytics and progress tracking for student outcomes
 
 ## Demo
 
@@ -85,36 +83,11 @@ Student -> Discover Mentor -> Create Booking Draft -> Stripe Checkout
 
 ## Why I Built This
 
-I wanted to build a system that treats student guidance like mission-critical infrastructure, not scattered advice. LinkU is intentionally built as a real product: opinionated architecture, operational workflows, and a path from prototype to scalable company.
+I built LinkU to solve a real pain: students with ambition often do not have access to structured, credible guidance when it matters most. This product exists to close that gap and turn uncertainty into confident action.
 
-## Repository Structure
+## For Engineers
 
-A concise architecture-oriented map is available in [`docs/REPO_STRUCTURE.md`](./docs/REPO_STRUCTURE.md).
+Detailed architecture and implementation docs are available here:
 
-## Local Setup
-
-```bash
-npm install
-cp .env.example .env.local
-npm run prisma:generate
-npm run prisma:migrate
-npm run dev
-```
-
-Optional Stripe local webhook forwarding:
-
-```bash
-stripe listen --forward-to localhost:3000/api/stripe/webhook
-```
-
-## Quality Gate
-
-Run the same checks as CI:
-
-```bash
-npm run ci && npm run build
-```
-
-## Environment
-
-Use [`.env.example`](./.env.example) as the single source of required runtime keys. Sensitive keys are never committed; runtime configuration is centralized in `lib/env.ts`.
+- [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md)
+- [`docs/REPO_STRUCTURE.md`](./docs/REPO_STRUCTURE.md)
