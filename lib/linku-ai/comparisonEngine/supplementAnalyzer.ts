@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { openRouterJson } from "../openrouter";
-import { linkuAiLogger } from "../logger";
 
 export type EssayScores = {
   coherence: number;

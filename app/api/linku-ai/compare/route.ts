@@ -3,7 +3,7 @@ import { handleApiError, ok, badRequest, notFound } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 import { compareRequestSchema } from "@/lib/linku-ai/schemas";
 import { compareProfiles } from "@/lib/linku-ai/comparisonEngine/profileComparator";
-import { computeLorScore, aggregateLorScores } from "@/lib/linku-ai/comparisonEngine/lorProcessor";
+import { computeLorScore } from "@/lib/linku-ai/comparisonEngine/lorProcessor";
 import {
   computeUniversityRelativeScore,
   type ProfileForScoring,

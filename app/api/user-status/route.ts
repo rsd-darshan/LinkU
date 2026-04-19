@@ -25,7 +25,7 @@ type UserStatusUpdateBody = {
 // Heartbeat interval to clean up offline users
 setInterval(() => {
   const now = new Date();
-  for (const [_userId, status] of userStatuses.entries()) {
+  for (const [, status] of userStatuses.entries()) {
     if (status.status !== 'offline' && now.getTime() - status.lastSeen.getTime() > 30000) {
       status.status = 'offline';
     }

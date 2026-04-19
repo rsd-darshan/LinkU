@@ -61,7 +61,7 @@ export async function openRouterJson<T>(
   if (codeBlock) jsonStr = codeBlock[1].trim();
   try {
     return JSON.parse(jsonStr) as T;
-  } catch (e) {
+  } catch (_e) {
     linkuAiLogger.error("OpenRouter JSON parse failed", { raw: raw.slice(0, 300) });
     throw new Error("Invalid JSON from AI response");
   }

@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
@@ -63,7 +64,7 @@ export function UserProfileClient({ userId, initialData }: UserProfileClientProp
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function refreshConnectionStatus() {
+  const refreshConnectionStatus = useCallback(async () => {
     try {
       const response = await fetch(`/api/users/${userId}`);
       const data = (await response.json()) as { user?: UserProfileData; error?: string };
@@ -73,7 +74,7 @@ export function UserProfileClient({ userId, initialData }: UserProfileClientProp
     } catch {
       // Silently fail - connection status refresh is not critical
     }
-  }
+  }, [userId]);
 
   async function sendConnectionRequest() {
     setLoading(true);
@@ -102,9 +103,8 @@ export function UserProfileClient({ userId, initialData }: UserProfileClientProp
   }
 
   useEffect(() => {
-    // Refresh connection status on mount to ensure it's up to date
-    refreshConnectionStatus();
-  }, []);
+    void refreshConnectionStatus();
+  }, [refreshConnectionStatus]);
 
   const profile = user.studentProfile || user.mentorProfile;
   const fullName = user.studentProfile?.fullName || user.mentorProfile?.fullName || user.email.split("@")[0];
@@ -292,7 +292,14 @@ export function UserProfileClient({ userId, initialData }: UserProfileClientProp
                       {/\.(mp4|webm|mov)$/i.test(post.mediaUrls[0]) ? (
                         <video src={post.mediaUrls[0]} className="h-full w-full object-cover" muted />
                       ) : (
-                        <img src={post.mediaUrls[0]} alt={post.title} className="h-full w-full object-cover transition duration-normal group-hover:scale-105" />
+                        <Image
+                          src={post.mediaUrls[0]}
+                          alt={post.title}
+                          fill
+                          className="object-cover transition duration-normal group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          unoptimized
+                        />
                       )}
                     </div>
                   )}

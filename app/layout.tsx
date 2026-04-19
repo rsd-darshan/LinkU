@@ -7,6 +7,7 @@ import { MainGrid } from "@/components/layout/main-grid";
 import { RightSidebarConditional } from "@/components/layout/right-sidebar-conditional";
 import { TopNav } from "@/components/layout/top-nav";
 import { AgoraCallProvider } from "@/components/calls/agora-call-provider";
+import { isUsableClerkPublishableKey } from "@/lib/clerk-publishable-key";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -19,9 +20,10 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const clerkEnabled = isUsableClerkPublishableKey(clerkKey);
 
-  if (!clerkPublishableKey) {
+  if (!clerkEnabled) {
     return (
       <html lang="en" className={inter.variable}>
         <head>
@@ -54,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+    <ClerkProvider publishableKey={clerkKey}>
       <html lang="en" className={inter.variable}>
         <head>
           <link rel="preconnect" href="https://unpkg.com" crossOrigin="" />

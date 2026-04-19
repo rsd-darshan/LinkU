@@ -62,7 +62,7 @@ export function AgoraCallProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       clearInterval(interval);
     };
-  }, [activeCall?.channelName]);
+  }, [activeCall]);
 
   useEffect(() => {
     if (!declinedMessage) return;

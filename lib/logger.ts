@@ -19,11 +19,9 @@ function formatMessage(level: string, message: string, meta?: LogMeta) {
 
 export const logger = {
   info(message: string, meta?: LogMeta) {
-    // eslint-disable-next-line no-console
     console.log(formatMessage("info", message, meta));
   },
   warn(message: string, meta?: LogMeta) {
-    // eslint-disable-next-line no-console
     console.warn(formatMessage("warn", message, meta));
   },
   error(message: string, meta?: LogMeta & { error?: unknown }) {
@@ -34,7 +32,6 @@ export const logger = {
       safeMeta.errorMessage = err.message;
       if (!isProd) safeMeta.stack = err.stack;
     }
-    // eslint-disable-next-line no-console
     console.error(formatMessage("error", message, safeMeta));
   },
 };

@@ -67,7 +67,7 @@ export function LinkUAiCompareClient({
   universities: University[];
 }) {
   const peerList = peerUsers && peerUsers.length > 0 ? peerUsers : users;
-  const [userAId, setUserAId] = useState(currentUserId);
+  const userAId = currentUserId;
   const [userBId, setUserBId] = useState("");
   const [universityId, setUniversityId] = useState("");
   const [loading, setLoading] = useState(false);

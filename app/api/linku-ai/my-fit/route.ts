@@ -2,7 +2,7 @@ import { requireUser } from "@/lib/auth";
 import { handleApiError, ok, badRequest, notFound } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 import { myFitRequestSchema } from "@/lib/linku-ai/schemas";
-import { computeLorScore, aggregateLorScores } from "@/lib/linku-ai/comparisonEngine/lorProcessor";
+import { computeLorScore } from "@/lib/linku-ai/comparisonEngine/lorProcessor";
 import {
   computeUniversityRelativeScore,
   type ProfileForScoring,
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const { universityId } = parsed.data;
     const userId = user.id;
 
-    const [university, stats, app, profile, lors, essayAnalysis] = await Promise.all([
+    const [university, stats, , profile, lors, essayAnalysis] = await Promise.all([
       prisma.university.findUnique({
         where: { id: universityId },
       }),

@@ -12,15 +12,11 @@ const nextConfig: NextConfig = {
       }
     ]
   },
-  // Increase API route timeout to prevent timeouts during WebRTC operations
   experimental: {
-    // Fix: Move to correct location
     optimizeCss: true,
-    optimizePackageImports: ['react', 'react-dom']
+    optimizePackageImports: ["react", "react-dom"]
   },
-  // Fix: Move serverExternalPackages to correct location
-  serverExternalPackages: ['socket.io'],
-  // Increase timeout for API routes
+  serverExternalPackages: ["socket.io"],
   async headers() {
     const securityHeaders = [
       { key: 'X-Frame-Options', value: 'DENY' },

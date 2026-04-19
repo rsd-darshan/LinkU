@@ -252,7 +252,11 @@ function AgoraVideoCallInner({ channelName, remoteName, onLeave }: AgoraVideoCal
 
   useEffect(() => {
     return () => {
-      const { video, audio } = tracksRef.current;
+      // Read latest tracks at unmount (not render-time snapshot); ref is the source of truth for Agora cleanup.
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional tracksRef.current read in cleanup
+      const snap = tracksRef.current;
+      const video = snap.video;
+      const audio = snap.audio;
       try {
         video?.close();
       } catch (e) {

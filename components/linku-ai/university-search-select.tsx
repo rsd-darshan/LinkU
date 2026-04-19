@@ -88,7 +88,13 @@ export function UniversitySearchSelect({
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="flex rounded-input border border-slate-200 bg-white overflow-hidden">
+      <div
+        className="flex rounded-input border border-slate-200 bg-white overflow-hidden"
+        role="combobox"
+        aria-expanded={open}
+        aria-controls="university-listbox"
+        aria-haspopup="listbox"
+      >
         <input
           type="text"
           value={open ? query : selected ? selected.name : ""}
@@ -108,8 +114,6 @@ export function UniversitySearchSelect({
           disabled={disabled}
           className="flex-1 min-w-0 px-3 py-2 text-body-sm border-0 focus:ring-2 focus:ring-brand-500 focus:ring-inset outline-none"
           aria-autocomplete="list"
-          aria-expanded={open}
-          aria-controls="university-listbox"
           id="university-search"
         />
         {loading && (

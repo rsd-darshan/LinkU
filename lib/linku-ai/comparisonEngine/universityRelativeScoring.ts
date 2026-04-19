@@ -1,5 +1,5 @@
 import { linkuAiConfig, getBandFromCompositeScore, type FitBand } from "../config";
-import { aggregateLorScores, computeLorScore } from "./lorProcessor";
+import { aggregateLorScores } from "./lorProcessor";
 
 export type ProfileForScoring = {
   gpa: number | null;

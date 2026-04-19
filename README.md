@@ -1,6 +1,16 @@
 # LinkU
 
-Production-structured two-sided student platform built with Next.js App Router, TypeScript, Prisma, PostgreSQL, Clerk, Stripe, and S3.
+[![CI](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml/badge.svg)](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
+Production-grade **student ↔ mentor** marketplace and campus network: bookings, Stripe payments, messaging, channels/feed, and optional **LinkU-AI** admissions tooling. Built with the **Next.js App Router**, **TypeScript**, **Prisma**, **PostgreSQL**, **Clerk**, **Stripe**, and **S3**.
+
+**Suggested GitHub metadata:** description *“Next.js student–mentor platform: bookings, messaging, Clerk, Stripe, Prisma”* and topics `nextjs`, `typescript`, `prisma`, `clerk`, `stripe`, `tailwindcss`, `postgresql`.
+
+## Quality checks
+
+- **CI:** GitHub Actions runs `prisma validate`, ESLint (zero warnings), TypeScript, Vitest, and `next build` without production secrets (Clerk keys unset for build; see `lib/clerk-publishable-key.ts`).
+- **Local:** `npm run ci` then `npm run build` (use real Clerk keys in `.env.local` for a full auth build, or leave Clerk unset for the same path CI uses).
 
 ## Tech Stack
 
@@ -14,6 +24,12 @@ Production-structured two-sided student platform built with Next.js App Router, 
 - Vercel deployment target
 
 **For AI and detailed conventions:** see [TECH_STACK.md](./TECH_STACK.md) for the full stack, libraries, and coding conventions used in this repo.
+
+**Contributing & security:** [CONTRIBUTING.md](./CONTRIBUTING.md) · [SECURITY.md](./SECURITY.md)
+
+## Folder structure (overview)
+
+The tree below is representative; the canonical route map lives under [`app/`](./app/) and [`app/api/`](./app/api/) (including LinkU-AI, channels, feed, calls, and uploads).
 
 ## Folder Structure
 
@@ -160,7 +176,7 @@ Returns top 5 mentors.
    cp .env.example .env.local
    ```
 
-3. Start PostgreSQL and update `DATABASE_URL`.
+3. Start PostgreSQL and set `DATABASE_URL` (optional: `docker compose up -d` from the repo root uses the credentials in [`.env.example`](./.env.example)).
 
 4. Generate Prisma client and run migrations:
 
@@ -200,4 +216,4 @@ Implemented architecture follows this phase sequence:
 - Replace placeholder realtime adapter in `services/realtime.ts` with Pusher/Ably/WebSocket gateway.
 - Add an explicit report model/workflow to back `reported-accounts`.
 - Add dedicated audit logging and API rate-limiting middleware.
-- Add test suites (unit + integration + E2E) before go-live.
+- Extend automated tests (integration + E2E) beyond the current Vitest unit suite; see [PRODUCTION.md](./PRODUCTION.md).

@@ -262,6 +262,7 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
         }
       })
       .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- use posts.length (not posts) to avoid refetch loops when other posts change
   }, [initialPostId, posts.length]);
 
   async function createPost() {

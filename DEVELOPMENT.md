@@ -60,4 +60,3 @@ The app uses `720p_2` for video quality; if performance is an issue on low-end d
 ## Hydration warning (browser extensions)
 
 If you see a hydration error about `__gchrome_uniqueid` or similar on `<form>` / `<input>`, it’s usually a **browser extension** (e.g. Chrome) modifying the DOM. The app already uses `suppressHydrationWarning` on the affected fields to avoid the warning. For a clean dev setup, you can disable extensions or use a separate browser profile.
-` 

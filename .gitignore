@@ -11,6 +11,7 @@
 # misc
 .DS_Store
 .c[u]rsor
+*.tsbuildinfo
 
 # logs
 npm-debug.log*
@@ -28,3 +29,7 @@ prisma/dev.db
 prisma/dev.db-journal
 
 certificates
+
+# User uploads (S3 or local); never commit runtime files
+public/uploads/*
+!public/uploads/.gitkeep

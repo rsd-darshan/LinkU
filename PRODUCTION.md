@@ -41,7 +41,7 @@ Use this checklist before deploying LinkU to production. For a full analysis (ar
 
 ## 6. Testing
 
-- [ ] **Unit / integration** – Add tests for critical paths: auth helpers, booking logic, message access, Stripe webhook handler. (e.g. Jest + React Testing Library, or Vitest.)
+- [ ] **Unit / integration** – Vitest covers matching, HTTP helpers, sanitization, and Clerk publishable-key detection; extend to booking, messaging guards, and Stripe webhook.
 - [ ] **E2E** – Add a small E2E suite (e.g. Playwright) for sign-in, booking flow, and messaging.
 - [ ] **Manual** – Test sign-up, onboarding, mentor discovery, booking, payments, and video calls on staging.
 
@@ -70,4 +70,4 @@ Use this checklist before deploying LinkU to production. For a full analysis (ar
 | Errors     | error.tsx, global-error.tsx, not-found    | Test and optionally add Sentry             |
 | Security   | Zod, sanitize, Stripe verify, headers     | Rate limiting, audit log                   |
 | Health     | GET /api/health                            | Wire to LB / uptime monitor                |
-| Testing    | None                                       | Add unit + E2E for critical paths          |
+| Testing    | Vitest (matching, HTTP helpers, Clerk env) | Add E2E (Playwright) for critical journeys |

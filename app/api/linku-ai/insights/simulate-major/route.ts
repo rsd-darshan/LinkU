@@ -74,7 +74,6 @@ export async function POST(request: Request) {
       majorOverrideMultiplier: overrideMult,
     });
 
-    const currentLabel = currentMajor || "your current major";
     const direction =
       simulatedResult.composite0To100 > currentResult.composite0To100
         ? "improving"
