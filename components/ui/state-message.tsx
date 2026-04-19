@@ -8,7 +8,13 @@ type StateMessageProps = {
   children?: React.ReactNode;
 };
 
-export function StateMessage({ variant, title, description, className, children }: StateMessageProps) {
+export function StateMessage({
+  variant,
+  title,
+  description,
+  className,
+  children
+}: StateMessageProps) {
   const isError = variant === "error";
   const isEmpty = variant === "empty";
   const isLoading = variant === "loading";
@@ -16,19 +22,28 @@ export function StateMessage({ variant, title, description, className, children 
   return (
     <div
       className={clsx(
-        "rounded-card-lg border p-6 text-center backdrop-blur-sm",
-        isError && "border-red-200/80 bg-red-50/85 text-red-800",
-        isEmpty && "border-white/70 bg-white/72 text-slate-600",
-        isLoading && "border-white/70 bg-white/72 text-slate-600",
+        "rounded-2xl border p-6 text-center",
+        isError && "border-red-200 bg-red-50 text-red-900",
+        isEmpty && "border-line bg-page-subtle text-ink-secondary",
+        isLoading && "border-line bg-page-subtle text-ink-secondary",
         className
       )}
       role={isError ? "alert" : undefined}
     >
       {isLoading && (
-        <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-brand-600" aria-hidden="true" />
+        <div
+          className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-line border-t-brand-500"
+          aria-hidden="true"
+        />
       )}
-      <p className={clsx("font-semibold", isError ? "text-red-900" : "text-slate-900")}>{title}</p>
-      {description && <p className="mt-1 text-body-sm">{description}</p>}
+      <p className={clsx("font-bold tracking-snug", isError ? "text-red-900" : "text-ink")}>
+        {title}
+      </p>
+      {description && (
+        <p className={clsx("mt-2 text-body-sm", isError ? "text-red-800" : "text-ink-secondary")}>
+          {description}
+        </p>
+      )}
       {children && <div className="mt-4">{children}</div>}
     </div>
   );

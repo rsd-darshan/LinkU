@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { CommentsModal } from "./comments-modal";
+import { PostActionBar } from "./post-action-bar";
 import { ShareModal } from "./share-modal";
 import { StateMessage } from "@/components/ui/state-message";
 import { CardSkeleton } from "@/components/ui/skeleton";
@@ -53,6 +55,7 @@ type FeedComment = {
     role: "STUDENT" | "MENTOR" | "ADMIN";
     studentProfile: { fullName: string } | null;
     mentorProfile: { fullName: string } | null;
+    imageUrl?: string | null;
   };
 };
 
@@ -75,35 +78,37 @@ function roleTag(role: "STUDENT" | "MENTOR" | "ADMIN") {
   return "Student";
 }
 
-function UpvoteIcon() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <path d="M10 3l5 6H5l5-6z" />
-    </svg>
-  );
+function authorDisplayName(author: FeedPost["author"]) {
+  return author.studentProfile?.fullName || author.mentorProfile?.fullName || "User";
 }
 
-function CommentIcon() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <path d="M3 4.5h14v9H8l-4 3v-3H3v-9z" />
-    </svg>
-  );
-}
-
-function ShareIcon() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-      <path d="M12 4h5v5" />
-      <path d="M17 4l-7 7" />
-      <path d="M15 11v4.5H4.5V5H9" />
-    </svg>
-  );
+function initialsFromName(name: string) {
+  const clean = name.trim();
+  if (!clean) return "?";
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] ?? ""}${parts[parts.length - 1]?.[0] ?? ""}`.toUpperCase() || "?";
 }
 
 type FeedClientProps = {
   initialPostId?: string;
 };
+
+type ApiFeedPost = Omit<FeedPost, "createdAt"> & { createdAt: string | Date };
+
+function mapApiPostToFeedPost(p: ApiFeedPost): FeedPost {
+  return {
+    ...p,
+    createdAt: typeof p.createdAt === "string" ? p.createdAt : new Date(p.createdAt).toISOString(),
+    mediaUrls: Array.isArray(p.mediaUrls) ? p.mediaUrls : [],
+    upvotes: typeof p.upvotes === "number" ? p.upvotes : 0,
+    shareCount: typeof p.shareCount === "number" ? p.shareCount : 0,
+    commentCount: typeof p.commentCount === "number" ? p.commentCount : 0,
+    hasUpvoted: Boolean(p.hasUpvoted),
+    channel: p.channel ?? null,
+    author: p.author
+  };
+}
 
 export function FeedClient({ initialPostId }: FeedClientProps = {}) {
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -111,6 +116,8 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
   const [selectedChannelSlug, setSelectedChannelSlug] = useState("all");
   const [feedSort, setFeedSort] = useState<"for_you" | "latest" | "top">("for_you");
   const [currentUserId, setCurrentUserId] = useState("");
+  const [currentUserImageUrl, setCurrentUserImageUrl] = useState<string | null>(null);
+  const [currentUserDisplayName, setCurrentUserDisplayName] = useState("");
   const [suggestedUsers, setSuggestedUsers] = useState<SuggestUser[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,9 +131,10 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [replyOpenByComment, setReplyOpenByComment] = useState<Record<string, boolean>>({});
-  const [commentPanels, setCommentPanels] = useState<Record<string, boolean>>({});
+  const [commentModalPostId, setCommentModalPostId] = useState<string | null>(null);
   const [commentsByPost, setCommentsByPost] = useState<Record<string, FeedComment[]>>({});
   const [submitting, setSubmitting] = useState(false);
+  const upvoteInFlight = useRef<Set<string>>(new Set());
 
   async function loadChannels() {
     const response = await fetch("/api/channels");
@@ -149,6 +157,11 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
     const pendingConnections = connections.filter((item) => item.status === "PENDING").length;
     return { totalPosts, withChannel, totalEngagement, pendingConnections };
   }, [posts, connections]);
+
+  const commentModalPost = useMemo(
+    () => (commentModalPostId ? posts.find((p) => p.id === commentModalPostId) ?? null : null),
+    [commentModalPostId, posts]
+  );
 
   async function loadPosts() {
     const response = await fetch(`/api/feed${feedQuery ? `?${feedQuery}` : ""}`);
@@ -177,7 +190,13 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
       setConnections([]);
       return;
     }
-    const profile = (await profileRes.json()) as { user?: { id: string }; error?: string };
+    const profile = (await profileRes.json()) as {
+      user?: { id: string };
+      studentProfile?: { fullName: string } | null;
+      mentorProfile?: { fullName: string } | null;
+      imageUrl?: string | null;
+      error?: string;
+    };
     const usersData = (await usersRes.json()) as { users: SuggestUser[]; error?: string };
     const connectionsData = (await connectionsRes.json()) as { connections: Connection[]; error?: string };
     if (!profileRes.ok || !usersRes.ok || !connectionsRes.ok) {
@@ -185,6 +204,10 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
     }
 
     setCurrentUserId(profile.user?.id || "");
+    setCurrentUserImageUrl(profile.imageUrl ?? null);
+    setCurrentUserDisplayName(
+      profile.studentProfile?.fullName || profile.mentorProfile?.fullName || ""
+    );
     setSuggestedUsers((usersData.users || []).slice(0, 8));
     setConnections(connectionsData.connections || []);
   }
@@ -273,10 +296,8 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
     setSubmitting(true);
     setError(null);
     try {
-      const mediaUrls: string[] = [];
-      for (const file of mediaFiles) {
-        mediaUrls.push(await uploadFile(file));
-      }
+      const mediaUrls =
+        mediaFiles.length > 0 ? await Promise.all(mediaFiles.map((file) => uploadFile(file))) : [];
 
       const response = await fetch("/api/feed", {
         method: "POST",
@@ -287,12 +308,17 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
           mediaUrls
         })
       });
-      const data = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(data.error || "Failed to create post");
+      const data = (await response.json()) as { post?: ApiFeedPost; error?: string };
+      if (!response.ok || !data.post) throw new Error(data.error || "Failed to create post");
+      const mapped = mapApiPostToFeedPost(data.post);
       setNewPostTitle("");
       setNewPostBody("");
       setMediaFiles([]);
-      await loadPosts();
+      setPosts((prev) => {
+        const without = prev.filter((post) => post.id !== mapped.id);
+        return [mapped, ...without];
+      });
+      void loadPosts();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to publish post");
     } finally {
@@ -341,6 +367,8 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
   }
 
   async function upvotePost(postId: string) {
+    if (upvoteInFlight.current.has(postId)) return;
+    upvoteInFlight.current.add(postId);
     try {
       const response = await fetch(`/api/feed/${postId}/upvote`, { method: "POST" });
       const data = (await response.json()) as { post?: { id: string; upvotes: number; hasUpvoted?: boolean }; error?: string };
@@ -352,6 +380,8 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upvote");
+    } finally {
+      upvoteInFlight.current.delete(postId);
     }
   }
 
@@ -369,17 +399,20 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
     }));
   }
 
-  async function toggleComments(postId: string) {
-    const nextState = !commentPanels[postId];
-    setCommentPanels((prev) => ({ ...prev, [postId]: nextState }));
-    if (nextState && !commentsByPost[postId]) {
-      try {
-        await loadComments(postId);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed loading comments");
-      }
-    }
+  function toggleComments(postId: string) {
+    setCommentModalPostId((prev) => (prev === postId ? null : postId));
   }
+
+  useEffect(() => {
+    const id = commentModalPostId;
+    if (!id) return;
+    if (commentsByPost[id] !== undefined) return;
+    void loadComments(id).catch((err) =>
+      setError(err instanceof Error ? err.message : "Failed loading comments")
+    );
+    // Intentionally load when the sheet opens for a post id; avoid re-running on every comments map update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commentModalPostId]);
 
   async function submitComment(postId: string) {
     const draft = (commentDrafts[postId] || "").trim();
@@ -471,20 +504,22 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
   }
 
   return (
-    <div className="page-content space-y-6">
+    <div className="min-h-0 space-y-4">
       {loading ? (
-        <div className="space-y-5">
+        <div className="space-y-4 py-6">
           <CardSkeleton />
           <CardSkeleton />
           <CardSkeleton />
         </div>
       ) : null}
       {error && !loading ? (
-        <StateMessage variant="error" title="Couldn't load feed" description={error} />
+        <div className="py-2">
+          <StateMessage variant="error" title="Couldn't load feed" description={error} />
+        </div>
       ) : null}
       {initialPostId ? (
-        <div className="card-app-section border-brand-200 bg-brand-50/70 flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-white">
+        <div className="flex items-center gap-3 rounded-xl border border-brand-500/30 bg-brand-500/15 px-4 py-3.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white">
             <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12 4h5v5" />
               <path d="M17 4l-7 7" />
@@ -492,12 +527,12 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
             </svg>
           </span>
           <div>
-            <p className="text-sm font-semibold text-slate-900">You&apos;re viewing a shared post</p>
-            <p className="text-xs text-slate-600">Scroll down to see the post highlighted below.</p>
+            <p className="text-tweet font-bold text-ink">Shared post</p>
+            <p className="text-meta text-ink-secondary">Scroll to the highlighted post below.</p>
           </div>
         </div>
       ) : null}
-      <div className="space-y-4">
+      <div className="min-h-0">
         <aside className="hidden">
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-900">Workspace</h3>
@@ -544,33 +579,56 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
           </section>
         </aside>
 
-        <main className="space-y-5">
-          <section className="card-app">
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 flex-shrink-0 rounded-full bg-slate-200" aria-hidden="true" />
-              <div className="w-full space-y-3">
-                <label htmlFor="feed-post-title" className="sr-only">Post title</label>
-                <input
-                  id="feed-post-title"
-                  className="input-app min-h-0 rounded-input"
-                  placeholder="Post title"
-                  value={newPostTitle}
-                  onChange={(e) => setNewPostTitle(e.target.value)}
-                  suppressHydrationWarning
-                />
-                <label htmlFor="feed-post-body" className="sr-only">Post content</label>
-                <textarea
-                  id="feed-post-body"
-                  className="input-app min-h-0 rounded-input resize-y"
-                  placeholder="Share something with the community..."
-                  rows={4}
-                  value={newPostBody}
-                  onChange={(e) => setNewPostBody(e.target.value)}
-                  suppressHydrationWarning
-                />
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3.5">
-                  <label className="chip-app cursor-pointer text-slate-700 hover:bg-white/90">
-                    Add photo/video
+        <main className="mx-auto max-w-full space-y-3">
+          <section className="rounded-xl border border-line bg-page-subtle p-2 sm:p-2.5">
+            <div className="flex items-start gap-2">
+              <div
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink-secondary text-[11px] font-bold leading-none text-white"
+                aria-hidden="true"
+              >
+                +
+              </div>
+              <div className="min-w-0 flex-1 space-y-2">
+                <div>
+                  <label
+                    htmlFor="feed-post-title"
+                    className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wide text-ink-tertiary"
+                  >
+                    Post title
+                  </label>
+                  <div className="rounded-md border border-line bg-page px-2 py-1.5 shadow-none transition-colors focus-within:border-brand-500/45 focus-within:ring-1 focus-within:ring-brand-500/20">
+                    <input
+                      id="feed-post-title"
+                      className="w-full border-0 bg-transparent p-0 text-body-sm font-semibold leading-snug tracking-tight text-ink placeholder:text-ink-tertiary outline-none focus:ring-0"
+                      placeholder="Short headline"
+                      value={newPostTitle}
+                      onChange={(e) => setNewPostTitle(e.target.value)}
+                      suppressHydrationWarning
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label
+                    htmlFor="feed-post-body"
+                    className="mb-0.5 block text-[10px] font-semibold uppercase tracking-wide text-ink-tertiary"
+                  >
+                    Post content
+                  </label>
+                  <div className="rounded-md border border-line bg-page px-2 py-1.5 shadow-none transition-colors focus-within:border-brand-500/45 focus-within:ring-1 focus-within:ring-brand-500/20">
+                    <textarea
+                      id="feed-post-body"
+                      className="min-h-[3.25rem] w-full resize-y border-0 bg-transparent p-0 text-body-sm font-normal leading-snug text-ink placeholder:text-ink-secondary outline-none focus:ring-0"
+                      placeholder="What’s happening?"
+                      rows={3}
+                      value={newPostBody}
+                      onChange={(e) => setNewPostBody(e.target.value)}
+                      suppressHydrationWarning
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-1.5 border-t border-line/90 pt-2">
+                  <label className="focus-ring inline-flex h-7 cursor-pointer items-center gap-1 rounded border border-line/90 bg-page px-2 py-0 text-[11px] font-semibold text-brand-600 transition hover:border-brand-500/35 hover:bg-page-subtle hover:text-brand-700">
+                    Media
                     <input
                       type="file"
                       accept="image/*,video/*"
@@ -579,19 +637,24 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
                       onChange={(e) => setMediaFiles(Array.from(e.target.files || []))}
                     />
                   </label>
-                  <Button type="button" onClick={() => void createPost()} disabled={submitting}>
+                  <Button
+                    type="button"
+                    className="!min-h-7 h-7 min-w-0 rounded-md px-3 py-0 text-[11px] font-semibold"
+                    onClick={() => void createPost()}
+                    disabled={submitting}
+                  >
                     {submitting ? "Posting..." : "Post"}
                   </Button>
                 </div>
                 {mediaFiles.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
                     {mediaFiles.map((file) => {
                       const preview = URL.createObjectURL(file);
                       return file.type.startsWith("video/") ? (
-                        <video key={file.name} src={preview} className="h-24 w-full rounded object-cover" muted />
+                        <video key={file.name} src={preview} className="h-16 w-full rounded-lg object-cover" muted />
                       ) : (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img key={file.name} src={preview} className="h-24 w-full rounded object-cover" alt={file.name} />
+                        <img key={file.name} src={preview} className="h-16 w-full rounded-lg object-cover" alt={file.name} />
                       );
                     })}
                   </div>
@@ -600,208 +663,118 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
             </div>
           </section>
 
-          <section className="card-app flex flex-wrap items-center justify-between gap-3.5">
-            <div>
-              <p className="text-sm font-semibold text-slate-900">Community Feed</p>
-              <p className="text-xs text-slate-500">Tailored to your interests and connections.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className={`chip-app transition duration-normal ${
-                  feedSort === "for_you" ? "active" : "text-slate-700 hover:bg-white/90"
-                }`}
-                onClick={() => setFeedSort("for_you")}
-              >
-                For You
-              </button>
-              <button
-                type="button"
-                className={`chip-app transition duration-normal ${
-                  feedSort === "latest" ? "active" : "text-slate-700 hover:bg-white/90"
-                }`}
-                onClick={() => setFeedSort("latest")}
-              >
-                Latest
-              </button>
-              <button
-                type="button"
-                className={`chip-app transition duration-normal ${
-                  feedSort === "top" ? "active" : "text-slate-700 hover:bg-white/90"
-                }`}
-                onClick={() => setFeedSort("top")}
-              >
-                Top
-              </button>
-            </div>
-          </section>
+          <nav
+            className="flex gap-1 rounded-xl border border-line bg-page-subtle p-1"
+            aria-label="Feed sort"
+          >
+            {(["for_you", "latest", "top"] as const).map((key) => {
+              const label = key === "for_you" ? "For you" : key === "latest" ? "Latest" : "Top";
+              const active = feedSort === key;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  className={`focus-ring relative flex h-8 min-h-0 flex-1 items-center justify-center rounded-md px-2 text-caption font-semibold transition ${
+                    active
+                      ? "border border-brand-500/50 bg-brand-600 text-white"
+                      : "border border-transparent bg-page text-ink-secondary hover:border-line hover:bg-page-subtle hover:text-ink"
+                  }`}
+                  onClick={() => setFeedSort(key)}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </nav>
 
-          {posts.map((post) => (
-            <article
-              id={`post-${post.id}`}
-              key={post.id}
-              className={`card-app group transition duration-normal ${
-                initialPostId === post.id
-                  ? "border-2 border-brand-500 ring-2 ring-brand-500/30 ring-offset-2"
-                  : "hover:-translate-y-px"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {initialPostId === post.id ? (
-                      <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[10px] font-semibold text-white">
-                        Shared post
-                      </span>
-                    ) : null}
-                    <p className="text-base font-semibold text-slate-900">{post.title}</p>
-                    {post.channel ? (
-                      <Link
-                        href={`/channels?slug=${post.channel.slug}`}
-                        className="chip-app min-h-0 px-2 py-0.5 text-[11px] text-slate-700 hover:bg-white/90"
-                      >
-                        /{post.channel.slug}
-                      </Link>
-                    ) : null}
-                  </div>
-                  <Link href={`/profile/${post.author.id}`} className="mt-1 block text-xs text-slate-500 transition-colors duration-normal hover:text-brand-600">
-                    {post.author.studentProfile?.fullName || post.author.mentorProfile?.fullName || "User"}{" "}
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-                      {roleTag(post.author.role)}
-                    </span>
+          <div className="space-y-3">
+          {posts.map((post) => {
+            const displayName = authorDisplayName(post.author);
+            const initials = initialsFromName(displayName);
+            return (
+              <article
+                id={`post-${post.id}`}
+                key={post.id}
+                className={`rounded-2xl border border-line bg-page p-4 shadow-sm transition-shadow duration-fast ease-smooth sm:p-5 ${
+                  initialPostId === post.id
+                    ? "ring-2 ring-brand-200 ring-offset-2 ring-offset-page"
+                    : "hover:shadow-md"
+                }`}
+              >
+                <div className="flex gap-3 sm:gap-4">
+                  <Link href={`/profile/${post.author.id}`} className="focus-ring h-fit shrink-0 rounded-full">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-page-subtle text-body-sm font-bold text-ink ring-1 ring-line">
+                      {initials}
+                    </div>
                   </Link>
-                </div>
-                <p className="text-xs text-slate-500">{new Date(post.createdAt).toLocaleDateString()}</p>
-              </div>
-              <p className="mt-3.5 text-sm leading-relaxed text-slate-700">{post.body}</p>
-              {(post.mediaUrls ?? []).length > 0 ? (
-                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {(post.mediaUrls ?? []).map((url) =>
-                    /\.(mp4|webm|mov)$/i.test(url) ? (
-                      <video key={url} src={url} controls className="h-48 w-full rounded object-cover" />
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img key={url} src={url} alt="post media" className="h-48 w-full rounded object-cover" />
-                    )
-                  )}
-                </div>
-              ) : null}
-              <div className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    className={`chip-app inline-flex items-center gap-1.5 transition duration-normal ${
-                      post.hasUpvoted
-                        ? "active"
-                        : "text-slate-700 hover:bg-white/90"
-                    }`}
-                    onClick={() => void upvotePost(post.id)}
-                  >
-                    <UpvoteIcon />
-                    {post.hasUpvoted ? "Upvoted" : "Upvote"} ({post.upvotes})
-                  </button>
-                  <button
-                    type="button"
-                    className="chip-app inline-flex items-center gap-1.5 text-slate-700 transition duration-normal hover:bg-white/90"
-                    onClick={() => void toggleComments(post.id)}
-                  >
-                    <CommentIcon />
-                    Comment ({post.commentCount})
-                  </button>
-                  <button
-                    type="button"
-                    className="chip-app inline-flex items-center gap-1.5 text-slate-700 transition duration-normal hover:bg-white/90"
-                    onClick={() => void sharePost(post.id)}
-                  >
-                    <ShareIcon />
-                    Share ({post.shareCount})
-                  </button>
-                </div>
-              </div>
-              {commentPanels[post.id] ? (
-                <div className="mt-4 rounded-xl border border-slate-200/50 bg-white/65 p-3.5 backdrop-blur-sm">
-                  <div className="space-y-3">
-                    {(commentsByPost[post.id] || [])
-                      .filter((comment) => !comment.parentId)
-                      .map((comment) => {
-                        const replies = (commentsByPost[post.id] || []).filter((item) => item.parentId === comment.id);
-                        return (
-                          <div key={comment.id} className="rounded-md bg-white p-3">
-                            <p className="text-xs text-slate-500">
-                              {comment.author.studentProfile?.fullName || comment.author.mentorProfile?.fullName || "User"}{" "}
-                              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-                                {roleTag(comment.author.role)}
-                              </span>
-                            </p>
-                            <p className="mt-1 text-sm text-slate-700">{comment.body}</p>
-                            <button
-                              type="button"
-                              className="mt-2 text-xs font-medium text-brand-700 hover:text-brand-800"
-                              onClick={() =>
-                                setReplyOpenByComment((prev) => ({ ...prev, [comment.id]: !prev[comment.id] }))
-                              }
-                            >
-                              Reply
-                            </button>
-
-                            {replyOpenByComment[comment.id] ? (
-                              <div className="mt-2 flex items-center gap-2">
-                                <input
-                                  className="input-app min-h-0 rounded-input"
-                                  placeholder="Write a reply..."
-                                  value={replyDrafts[comment.id] || ""}
-                                  onChange={(e) => setReplyDrafts((prev) => ({ ...prev, [comment.id]: e.target.value }))}
-                                  aria-label="Write a reply"
-                                />
-                                <Button type="button" variant="secondary" onClick={() => void submitReply(post.id, comment.id)}>
-                                  Reply
-                                </Button>
-                              </div>
-                            ) : null}
-
-                            {replies.length > 0 ? (
-                              <div className="mt-3 space-y-2 border-l border-slate-200 pl-3">
-                                {replies.map((reply) => (
-                                  <div key={reply.id} className="rounded-md bg-slate-50 p-2">
-                                    <p className="text-xs text-slate-500">
-                                      {reply.author.studentProfile?.fullName ||
-                                        reply.author.mentorProfile?.fullName ||
-                                        "User"}{" "}
-                                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-                                        {roleTag(reply.author.role)}
-                                      </span>
-                                    </p>
-                                    <p className="mt-1 text-sm text-slate-700">{reply.body}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : null}
-                          </div>
-                        );
-                      })}
-                    {(commentsByPost[post.id] || []).filter((comment) => !comment.parentId).length === 0 ? (
-                      <p className="text-xs text-slate-500">No comments yet.</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                      <Link href={`/profile/${post.author.id}`} className="truncate text-tweet font-bold text-ink hover:underline">
+                        {displayName}
+                      </Link>
+                      <span className="text-meta font-normal text-ink-secondary">· {roleTag(post.author.role)} · </span>
+                      <time className="text-meta text-ink-secondary" dateTime={post.createdAt}>
+                        {new Date(post.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                      </time>
+                      {post.channel ? (
+                        <Link
+                          href={`/channels?slug=${post.channel.slug}`}
+                          className="text-meta font-semibold text-brand-600 hover:text-brand-700 hover:underline"
+                        >
+                          /{post.channel.slug}
+                        </Link>
+                      ) : null}
+                      {initialPostId === post.id ? (
+                        <span className="rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                          Shared
+                        </span>
+                      ) : null}
+                    </div>
+                    <h2 className="mt-1.5 border-b border-line/70 pb-2 text-title-sm font-bold tracking-tight text-ink">
+                      {post.title}
+                    </h2>
+                    <p className="mt-2.5 whitespace-pre-wrap text-tweet font-normal leading-relaxed text-ink">
+                      {post.body}
+                    </p>
+                    {(post.mediaUrls ?? []).length > 0 ? (
+                      <div className="mt-3 grid grid-cols-1 gap-2 overflow-hidden rounded-xl border border-line/80 sm:grid-cols-2">
+                        {(post.mediaUrls ?? []).map((url) =>
+                          /\.(mp4|webm|mov)$/i.test(url) ? (
+                            <video key={url} src={url} controls className="max-h-80 w-full bg-black object-contain" />
+                          ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img key={url} src={url} alt="" className="max-h-80 w-full object-cover" />
+                          )
+                        )}
+                      </div>
                     ) : null}
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <input
-                      className="input-app min-h-0 flex-1 rounded-input"
-                      placeholder="Write a comment..."
-                      value={commentDrafts[post.id] || ""}
-                      onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                      aria-label="Write a comment"
-                    />
-                    <Button type="button" variant="secondary" onClick={() => void submitComment(post.id)}>
-                      Send
-                    </Button>
+                    <div className="mt-4 w-full max-w-xl border-t border-line/60 pt-3">
+                      <PostActionBar
+                        upvotes={post.upvotes}
+                        commentCount={post.commentCount}
+                        shareCount={post.shareCount}
+                        hasUpvoted={Boolean(post.hasUpvoted)}
+                        commentsPanelOpen={commentModalPostId === post.id}
+                        onUpvote={() => void upvotePost(post.id)}
+                        onToggleComments={() => void toggleComments(post.id)}
+                        onShare={() => void sharePost(post.id)}
+                      />
+                    </div>
                   </div>
                 </div>
-              ) : null}
-            </article>
-          ))}
+              </article>
+            );
+          })}
           {!loading && !error && posts.length === 0 ? (
-            <StateMessage variant="empty" title="Nothing posted yet" description="Be the first to post and start the conversation." />
+            <div className="p-6">
+              <StateMessage
+                variant="empty"
+                title="Nothing posted yet"
+                description="Be the first to post and start the conversation."
+              />
+            </div>
           ) : null}
+          </div>
         </main>
 
         <aside className="hidden">
@@ -883,6 +856,32 @@ export function FeedClient({ initialPostId }: FeedClientProps = {}) {
           </section>
         </aside>
       </div>
+      {commentModalPost ? (
+        <CommentsModal
+          open
+          onClose={() => setCommentModalPostId(null)}
+          postId={commentModalPost.id}
+          postTitle={commentModalPost.title}
+          comments={commentsByPost[commentModalPost.id] || []}
+          variant="threaded"
+          commentDraft={commentDrafts[commentModalPost.id] || ""}
+          onCommentDraftChange={(value) =>
+            setCommentDrafts((prev) => ({ ...prev, [commentModalPost.id]: value }))
+          }
+          onSubmitComment={() => void submitComment(commentModalPost.id)}
+          currentUserImageUrl={currentUserImageUrl}
+          currentUserDisplayName={currentUserDisplayName}
+          replyDrafts={replyDrafts}
+          replyOpenByComment={replyOpenByComment}
+          onToggleReply={(commentId) =>
+            setReplyOpenByComment((prev) => ({ ...prev, [commentId]: !prev[commentId] }))
+          }
+          onReplyDraftChange={(commentId, value) =>
+            setReplyDrafts((prev) => ({ ...prev, [commentId]: value }))
+          }
+          onSubmitReply={(parentId) => void submitReply(commentModalPost.id, parentId)}
+        />
+      ) : null}
       {sharePostId && (
         <ShareModal
           postId={sharePostId}

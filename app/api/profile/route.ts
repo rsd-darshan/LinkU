@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/auth";
+import { clerkImageUrlForUser } from "@/lib/clerk-user-images";
 import { handleApiError, ok } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 
@@ -20,11 +21,19 @@ export async function GET() {
       })
     ]);
 
+    let imageUrl: string | null = null;
+    try {
+      imageUrl = await clerkImageUrlForUser(currentUser.clerkId);
+    } catch {
+      imageUrl = null;
+    }
+
     return ok({
       user: currentUser,
       studentProfile,
       mentorProfile,
-      posts
+      posts,
+      imageUrl
     });
   } catch (error) {
     return handleApiError(error);

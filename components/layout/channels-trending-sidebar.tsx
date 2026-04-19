@@ -50,11 +50,15 @@ const TOPIC_STOP_WORDS = new Set([
 ]);
 
 function trendScore(post: TrendingPost) {
-  const hoursSinceCreated = Math.max(1, ((typeof window !== 'undefined' ? Date.now() : 0) - new Date(post.createdAt).getTime()) / (1000 * 60 * 60));
+  const hoursSinceCreated = Math.max(1, ((typeof window !== "undefined" ? Date.now() : 0) - new Date(post.createdAt).getTime()) / (1000 * 60 * 60));
   const recencyWeight = 24 / hoursSinceCreated;
   const mediaWeight = (post.mediaUrls?.length || 0) > 0 ? 2 : 0;
   const upvoteWeight = (post.upvotes || 0) * 3;
   return upvoteWeight + recencyWeight + mediaWeight;
+}
+
+function panelClass() {
+  return "rounded-2xl border border-line bg-page-subtle p-4";
 }
 
 export function ChannelsTrendingSidebar() {
@@ -136,58 +140,60 @@ export function ChannelsTrendingSidebar() {
   }, [selectedSlug]);
 
   return (
-    <aside className="hidden xl:block">
-      <div className="sticky top-14 space-y-4">
+    <aside className="min-w-0" aria-label="Trending in channels">
+      <div className="space-y-3">
         {selectedSlug ? (
-          <section className="card-app p-4">
-            <h3 className="text-title-sm text-slate-900">Most trending in /{selectedSlug}</h3>
-            <div className="mt-3 space-y-2">
+          <section className={panelClass()}>
+            <h3 className="text-title font-bold text-ink">Trending in /{selectedSlug}</h3>
+            <div className="mt-3 space-y-0 divide-y divide-line">
               {trendingPosts.map((post, idx) => (
                 <Link
                   key={post.id}
                   href={`/channels?slug=${post.channel.slug}`}
-                  className="block rounded-lg border border-slate-200 p-3 transition hover:bg-slate-50"
+                  className="focus-ring block py-3 transition first:pt-0 hover:bg-black/[0.04]"
                 >
-                  <p className="text-[11px] text-slate-500">#{idx + 1} in /{post.channel.slug}</p>
-                  <p className="mt-1 line-clamp-2 text-sm font-medium text-slate-900">{post.title}</p>
-                  <p className="mt-1 text-xs text-slate-500">Score {Math.round(trendScore(post))} · ▲ {post.upvotes || 0}</p>
+                  <p className="text-meta text-ink-tertiary">#{idx + 1} · /{post.channel.slug}</p>
+                  <p className="mt-0.5 line-clamp-2 text-body-sm font-semibold text-ink">{post.title}</p>
+                  <p className="mt-1 text-meta text-ink-secondary">
+                    Score {Math.round(trendScore(post))} · ▲ {post.upvotes || 0}
+                  </p>
                 </Link>
               ))}
-              {trendingPosts.length === 0 ? <p className="text-xs text-slate-500">No trending posts yet.</p> : null}
+              {trendingPosts.length === 0 ? <p className="py-2 text-meta text-ink-secondary">No trending posts yet.</p> : null}
             </div>
           </section>
         ) : (
-          <section className="card-app p-4">
-            <h3 className="text-title-sm text-slate-900">Hot Topics</h3>
+          <section className={panelClass()}>
+            <h3 className="text-title font-bold text-ink">Hot topics</h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {hotTopics.map(([topic, score]) => (
                 <span
                   key={topic}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-700"
+                  className="rounded-full border border-line bg-page px-3 py-1 text-meta font-semibold text-brand-500"
                   title={`Topic score ${Math.round(score)}`}
                 >
                   #{topic}
                 </span>
               ))}
-              {hotTopics.length === 0 ? <p className="text-xs text-slate-500">No hot topics yet.</p> : null}
+              {hotTopics.length === 0 ? <p className="text-meta text-ink-secondary">No hot topics yet.</p> : null}
             </div>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <p className="text-xs font-medium text-slate-700">Trending across channels</p>
-              <div className="mt-2 space-y-2">
+            <div className="mt-4 border-t border-line pt-3">
+              <p className="text-meta font-bold text-ink">Across channels</p>
+              <div className="mt-2 space-y-0 divide-y divide-line">
                 {trendingPosts.slice(0, 4).map((post) => (
                   <Link
                     key={post.id}
                     href={`/channels?slug=${post.channel.slug}`}
-                    className="block rounded-md px-2 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
+                    className="focus-ring block py-2.5 text-meta text-ink-secondary first:pt-0 hover:text-brand-500"
                   >
-                    <span className="font-medium">/{post.channel.slug}</span> · {post.title}
+                    <span className="font-bold text-brand-500">/{post.channel.slug}</span> · {post.title}
                   </Link>
                 ))}
               </div>
             </div>
           </section>
         )}
-        {error ? <p className="text-xs text-red-600">{error}</p> : null}
+        {error ? <p className="text-meta text-red-600">{error}</p> : null}
       </div>
     </aside>
   );

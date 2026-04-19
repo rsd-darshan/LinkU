@@ -1,11 +1,29 @@
-# LinkU
+# LinkU — Startup-Ready Student Success Platform
 
 [![CI](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml/badge.svg)](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-Production-grade **student ↔ mentor** marketplace and campus network: bookings, Stripe payments, messaging, channels/feed, and optional **LinkU-AI** admissions tooling. Built with the **Next.js App Router**, **TypeScript**, **Prisma**, **PostgreSQL**, **Clerk**, **Stripe**, and **S3**.
+**LinkU** is a startup-focused platform helping students move from uncertainty to outcomes through mentorship, peer communities, and AI-assisted admissions workflows.
+
+It combines a **student ↔ mentor marketplace** with a **social campus layer** (feed, channels, messaging) and **LinkU-AI** tooling for applications and fit analysis. The product is built for real-world operations: secure auth, paid bookings, moderation surfaces, and role-based access.
+
+Built with the **Next.js App Router**, **TypeScript**, **Prisma**, **PostgreSQL**, **Clerk**, **Stripe**, and **S3**.
 
 **Suggested GitHub metadata:** description *“Next.js student–mentor platform: bookings, messaging, Clerk, Stripe, Prisma”* and topics `nextjs`, `typescript`, `prisma`, `clerk`, `stripe`, `tailwindcss`, `postgresql`.
+
+## Why this repo stands out
+
+- **End-to-end product thinking:** discovery, conversion, transaction, fulfillment, and retention loops are implemented.
+- **Business-ready workflows:** mentor approvals, booking payments, chat permissions, review systems, and admin controls are included.
+- **Scalable architecture:** domain-split APIs, typed service layer, validation/sanitization, and CI gates for build quality.
+- **Interview-relevant depth:** demonstrates full-stack ownership across UX, backend logic, data modeling, and operational safeguards.
+
+## Product snapshot
+
+- **Target users:** students, mentors, and admins.
+- **Core value proposition:** faster university/career decisions through trusted mentorship and data-backed guidance.
+- **Monetization path:** paid mentor bookings via Stripe, with room for premium AI and subscription tiers.
+- **Defensibility:** community graph + mentorship interaction data + application intelligence workflows.
 
 ## Quality checks
 

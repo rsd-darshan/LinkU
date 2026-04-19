@@ -18,13 +18,14 @@ export function Button({
   return (
     <button
       type={props.type ?? "button"}
+      data-variant={variant}
       className={clsx(
-        "focus-ring inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-input px-4 py-2 text-body-sm font-medium transition duration-normal ease-smooth disabled:pointer-events-none disabled:opacity-60",
+        "focus-ring inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full px-4 py-2 text-body-sm font-bold transition duration-fast ease-smooth disabled:pointer-events-none disabled:opacity-50",
         variant === "primary" &&
-          "border border-brand-600 text-white shadow-card bg-gradient-to-b from-[#4b8fff] to-[#2e6ff2] hover:-translate-y-0.5 hover:shadow-card-hover",
+          "border border-brand-600 bg-brand-500 text-white hover:bg-brand-600 hover:brightness-105 active:brightness-95",
         variant === "secondary" &&
-          "border border-slate-300/60 bg-white/85 text-slate-800 shadow-glass backdrop-blur-sm hover:border-slate-400/70 hover:bg-white/95",
-        variant === "danger" && "border border-red-500 bg-red-500 text-white shadow-card hover:bg-red-600",
+          "border border-line bg-page text-ink hover:bg-page-subtle hover:border-line",
+        variant === "danger" && "border border-red-600 bg-red-500 text-white hover:bg-red-600",
         className
       )}
       disabled={isDisabled}

@@ -3,21 +3,22 @@
 @tailwind utilities;
 
 :root {
-  --color-brand-50: #ecf4ff;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
-  --color-page-bg: #edf2fb;
-  --color-page-glow: rgba(167, 190, 255, 0.24);
-  --color-surface: rgba(255, 255, 255, 0.78);
-  --color-surface-strong: rgba(255, 255, 255, 0.9);
-  --color-surface-muted: rgba(248, 250, 255, 0.64);
-  --color-border-soft: rgba(148, 163, 184, 0.22);
-  --shadow-card: 0 14px 32px -24px rgba(15, 23, 42, 0.48), 0 6px 14px -12px rgba(15, 23, 42, 0.26);
-  --shadow-card-hover: 0 18px 38px -22px rgba(37, 99, 235, 0.4), 0 10px 20px -16px rgba(15, 23, 42, 0.24);
-  --shadow-soft: 0 6px 16px -12px rgba(15, 23, 42, 0.25);
-  --glass-fallback-bg: rgba(255, 255, 255, 0.96);
-  --glass-fallback-border: rgba(148, 163, 184, 0.28);
+  --tw-blue: #1da1f2;
+  --tw-text: #0f1419;
+  --tw-text-secondary: #4e5b66;
+  --tw-text-tertiary: #6b7c8a;
+  --tw-border: #eff3f4;
+  --tw-bg: #ffffff;
+  --tw-hover: rgba(15, 20, 25, 0.07);
+  --tw-like: #f91880;
+  --tw-retweet: #00ba7c;
+  --color-page-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-strong: #ffffff;
+  --color-surface-muted: #f7f9f9;
+  --color-border-soft: #eff3f4;
+  --glass-fallback-bg: #ffffff;
+  --glass-fallback-border: #eff3f4;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -42,444 +43,223 @@ body {
   padding: 0;
 }
 
-body {
-  @apply text-slate-900 antialiased;
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  background:
-    radial-gradient(960px 420px at -8% -18%, rgba(167, 190, 255, 0.15), transparent 68%),
-    linear-gradient(180deg, #f8fbff 0%, #eef3fc 58%, #e9effa 100%);
+html {
+  @apply bg-page;
+  overscroll-behavior-y: contain;
 }
 
+body {
+  @apply antialiased text-ink bg-page;
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  background-color: var(--tw-bg);
+}
+
+/* Full-width shell: side rails sit near viewport edges */
+.layout-shell,
 .container-app {
-  @apply mx-auto w-full max-w-[1650px] px-4 xl:px-8;
+  @apply w-full min-w-0 max-w-[100vw] px-2 sm:px-2.5 md:px-3 xl:px-4 2xl:px-5;
 }
 
 .page-content {
-  @apply space-y-page-y py-6;
+  @apply space-y-0 py-0;
 }
 
 .page-title {
-  @apply text-title font-semibold text-slate-900;
+  @apply text-title font-bold leading-tight text-ink;
 }
 
 .page-description {
-  @apply text-body-sm text-slate-600;
+  @apply text-meta text-ink-secondary;
 }
 
+/* Static header: sticky + top offset overlapped content below in the scrollable center column */
+.page-header {
+  @apply relative border-b border-line bg-page px-3 py-1.5 sm:px-4;
+}
+
+.page-header:not(.route-hero) .page-description {
+  @apply mt-0.5;
+}
+
+/* Hero + header combo: one tight strip (no double vertical padding) */
+.page-header.route-hero {
+  @apply py-2 sm:py-2;
+}
+
+.route-hero .page-title {
+  @apply mt-1 leading-tight;
+}
+
+.route-hero .page-description {
+  @apply mt-1 max-w-2xl leading-snug;
+}
+
+.route-hero .route-badge {
+  @apply mb-0;
+}
+
+.route-dashboard .page-header.route-hero {
+  @apply py-1 sm:py-1.5;
+}
+
+.route-dashboard .route-hero .page-title {
+  @apply mt-0;
+}
+
+.route-dashboard .route-hero .page-description {
+  @apply mt-0.5;
+}
+
+/* Flat shell: no decorative meshes */
 .route-shell {
-  --route-accent: 37 99 235;
-  --route-accent-soft: 191 219 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 219 234 254;
   position: relative;
   isolation: isolate;
-  overflow: hidden;
-  border-radius: 1.2rem;
-  padding: 1.25rem;
+  overflow: visible;
+  border-radius: 0;
+  padding: 0;
 }
-.route-shell::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background:
-    radial-gradient(780px 260px at 0% 0%, rgba(var(--route-accent-soft), 0.32), transparent 70%),
-    linear-gradient(135deg, rgba(var(--route-bg-a), 0.46), rgba(var(--route-bg-b), 0.22));
-}
+
+.route-shell::before,
 .route-shell::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  opacity: 0.08;
-  background-image: linear-gradient(rgba(var(--route-accent), 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(var(--route-accent), 0.03) 1px, transparent 1px);
-  background-size: 24px 24px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), transparent 95%);
+  display: none;
 }
 
 .route-hero {
-  @apply relative overflow-hidden rounded-card-lg px-5 py-5 sm:px-6 sm:py-6;
-  background: linear-gradient(125deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.72));
-  border-width: 0;
-  border-color: transparent;
-  box-shadow: var(--shadow-card);
+  @apply relative border-b border-line bg-page px-3 py-2 sm:px-4;
+  border-radius: 0;
+  box-shadow: none;
 }
+
 .route-hero::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.9rem;
-  bottom: 0.9rem;
-  width: 4px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(var(--route-accent), 0.9), rgba(var(--route-accent), 0.35));
-}
-.route-hero > * {
-  position: relative;
-}
-
-.feed-hero-soft {
-  border-width: 0;
-  border-color: transparent;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-}
-
-.feed-hero-soft::before {
   display: none;
 }
 
 .route-badge {
-  @apply inline-flex min-h-[28px] items-center rounded-pill border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em];
-  border-width: 0;
-  border-color: transparent;
-  background: rgba(255, 255, 255, 0.35);
-  box-shadow:
-    0 0 0 1px rgba(148, 163, 184, 0.22) inset,
-    0 1px 0 rgba(255, 255, 255, 0.45) inset;
-  color: rgb(30 64 175);
+  @apply inline-flex min-h-[22px] items-center rounded-pill px-2 py-0 text-meta font-semibold text-brand-600;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
+
 .route-badge:hover {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--tw-hover);
 }
 
 .route-shell .card-app,
 .route-shell .card-app-section {
-  border-color: rgba(var(--route-accent), 0.1);
+  border-color: var(--tw-border);
 }
+
 .route-shell .chip-app {
-  border-color: rgba(var(--route-accent), 0.24);
-  background: rgba(255, 255, 255, 0.42);
+  border-color: var(--tw-border);
+  background: var(--tw-bg);
 }
 
-.route-feed {
-  --route-accent: 59 130 246;
-  --route-accent-soft: 191 219 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 219 234 254;
-}
-.route-feed::after {
-  background-image: radial-gradient(circle at 1px 1px, rgba(var(--route-accent), 0.18) 1.2px, transparent 0);
-  background-size: 24px 24px;
-}
-
-.route-channels {
-  --route-accent: 37 99 235;
-  --route-accent-soft: 191 219 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 219 234 254;
-}
-.route-channels::after {
-  background-image: linear-gradient(45deg, rgba(var(--route-accent), 0.09) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(var(--route-accent), 0.09) 25%, transparent 25%);
-  background-size: 22px 22px;
-}
-
-.route-networking {
-  --route-accent: 29 78 216;
-  --route-accent-soft: 191 219 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 219 234 254;
-}
-.route-networking::after {
-  background-image: repeating-linear-gradient(
-    -22deg,
-    rgba(var(--route-accent), 0.08),
-    rgba(var(--route-accent), 0.08) 1px,
-    transparent 1px,
-    transparent 14px
-  );
-}
-
-.route-mentors {
-  --route-accent: 30 64 175;
-  --route-accent-soft: 191 219 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 224 231 255;
-}
-.route-mentors::after {
-  background-image: linear-gradient(90deg, rgba(var(--route-accent), 0.08) 15%, transparent 15%, transparent 85%, rgba(var(--route-accent), 0.08) 85%);
-  background-size: 18px 18px;
-}
-
-.route-dashboard {
-  --route-accent: 37 99 235;
-  --route-accent-soft: 191 219 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 224 231 255;
-}
-.route-dashboard::after {
-  background-image: linear-gradient(rgba(var(--route-accent), 0.1) 1px, transparent 1px);
-  background-size: 100% 18px;
-}
-
-.route-dashboard .route-hero {
-  background: linear-gradient(125deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.7));
-  border-color: rgba(var(--route-accent), 0.1);
-  box-shadow: 0 10px 24px -18px rgba(15, 23, 42, 0.35), 0 4px 10px -10px rgba(var(--route-accent), 0.2);
-}
-
-.route-dashboard .route-hero::before {
-  width: 3px;
-  background: linear-gradient(180deg, rgba(var(--route-accent), 0.62), rgba(var(--route-accent), 0.24));
-}
-
-.route-dashboard .dashboard-stat-card {
-  background: rgba(255, 255, 255, 0.74);
-  border-color: rgba(var(--route-accent), 0.08);
-  box-shadow: 0 10px 22px -18px rgba(15, 23, 42, 0.3), 0 2px 8px -8px rgba(var(--route-accent), 0.18);
-}
-
-.route-dashboard .route-dashboard-quick-actions {
-  background: rgba(248, 250, 255, 0.58);
-  border-color: rgba(var(--route-accent), 0.08);
-  box-shadow: 0 10px 20px -18px rgba(15, 23, 42, 0.26);
-}
-
-.route-dashboard .dashboard-quick-link {
-  border-color: rgba(148, 163, 184, 0.28);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset;
-}
-
-.route-dashboard .dashboard-quick-link:hover {
-  border-color: rgba(var(--route-accent), 0.34);
-  background: rgba(239, 246, 255, 0.72);
-}
-
-.route-search {
-  --route-accent: 96 165 250;
-  --route-accent-soft: 219 234 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 219 234 254;
-}
-.route-search::after {
-  background-image: radial-gradient(ellipse at center, rgba(var(--route-accent), 0.15) 0 1px, transparent 1px 100%);
-  background-size: 26px 26px;
-}
-
-.route-notifications {
-  --route-accent: 59 130 246;
-  --route-accent-soft: 219 234 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 219 234 254;
-}
-.route-notifications::after {
-  background-image: linear-gradient(135deg, rgba(var(--route-accent), 0.09) 12.5%, transparent 12.5%, transparent 50%, rgba(var(--route-accent), 0.09) 50%, rgba(var(--route-accent), 0.09) 62.5%, transparent 62.5%, transparent);
-  background-size: 18px 18px;
-}
-
-.route-messages {
-  --route-accent: 30 64 175;
-  --route-accent-soft: 191 219 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 224 231 255;
-}
-.route-messages::after {
-  background-image: linear-gradient(90deg, rgba(var(--route-accent), 0.08) 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
-.route-profile {
-  --route-accent: 49 46 129;
-  --route-accent-soft: 199 210 254;
-  --route-bg-a: 238 242 255;
-  --route-bg-b: 224 231 255;
-}
-.route-profile::after {
-  background-image: linear-gradient(180deg, rgba(var(--route-accent), 0.08) 12%, transparent 12%, transparent 88%, rgba(var(--route-accent), 0.08) 88%);
-  background-size: 100% 22px;
-}
-
-.route-linku-ai {
-  --route-accent: 37 99 235;
-  --route-accent-soft: 191 219 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 224 231 255;
-}
-.route-linku-ai::after {
-  background-image: radial-gradient(circle at 50% 50%, rgba(var(--route-accent), 0.12) 1.3px, transparent 0);
-  background-size: 20px 20px;
-}
-
-.route-booking {
-  --route-accent: 29 78 216;
-  --route-accent-soft: 191 219 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 224 231 255;
-}
-.route-booking::after {
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgba(var(--route-accent), 0.08) 0 2px,
-    transparent 2px 16px
-  );
-}
-
-.route-reviews {
-  --route-accent: 59 130 246;
-  --route-accent-soft: 219 234 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 219 234 254;
-}
-.route-reviews::after {
-  background-image: linear-gradient(45deg, rgba(var(--route-accent), 0.09) 20%, transparent 20%, transparent 80%, rgba(var(--route-accent), 0.09) 80%);
-  background-size: 26px 26px;
-}
-
-.route-admin {
-  --route-accent: 30 64 175;
-  --route-accent-soft: 191 219 254;
-  --route-bg-a: 239 246 255;
-  --route-bg-b: 224 231 255;
-}
-.route-admin::after {
-  background-image: linear-gradient(0deg, rgba(var(--route-accent), 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(var(--route-accent), 0.12) 1px, transparent 1px);
-  background-size: 16px 16px;
+.feed-hero-soft {
+  box-shadow: none;
 }
 
 .glass-panel {
   background: var(--color-surface);
-  border: 0;
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .glass-header {
-  background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(148, 163, 184, 0.26);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.92);
+  border-color: var(--tw-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .card-app {
-  @apply glass-panel rounded-card-lg p-5 transition duration-normal ease-smooth;
+  @apply border-b border-line bg-page p-4 transition-colors duration-fast ease-smooth;
 }
 .card-app:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-card-hover);
+  background-color: var(--tw-hover);
 }
 
 .card-app-section {
-  @apply rounded-card border p-5 sm:p-6 transition duration-normal ease-smooth;
-  background: var(--color-surface-strong);
-  border-color: var(--color-border-soft);
-  border-width: 0;
-  border-color: transparent;
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  @apply border border-line bg-page p-4 sm:p-5 transition-colors duration-fast ease-smooth;
+  border-radius: 1rem;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 .card-app-section:hover {
-  box-shadow: var(--shadow-card-hover);
+  background-color: var(--tw-hover);
 }
 
 .card-app-muted,
 .card-app--muted {
-  @apply rounded-card border p-4;
-  background: var(--color-surface-muted);
-  border-color: var(--color-border-soft);
-  border-width: 0;
-  border-color: transparent;
+  @apply rounded-2xl border border-line bg-page-subtle p-4;
 }
 
 .input-app {
-  @apply min-h-[44px] w-full rounded-input border px-3.5 py-2.5 text-body-sm text-slate-800 outline-none transition duration-normal;
-  background: rgba(255, 255, 255, 0.74);
-  border-color: rgba(148, 163, 184, 0.35);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  @apply min-h-[44px] w-full rounded-input border border-line bg-page px-4 py-2.5 text-tweet text-ink outline-none transition duration-fast;
 }
 .input-app::placeholder {
-  @apply text-slate-400;
+  @apply text-ink-secondary;
 }
 .input-app:hover {
-  border-color: rgba(100, 116, 139, 0.5);
+  background-color: var(--color-surface-muted);
 }
 .input-app:focus {
-  @apply ring-2 ring-brand-500/25;
-  border-color: rgb(59 130 246 / 0.85);
-  background: rgba(255, 255, 255, 0.92);
+  @apply ring-1 ring-brand-500 border-brand-500;
+  background: var(--tw-bg);
 }
 
 .focus-ring {
-  @apply outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-100;
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-0;
 }
 
 .btn-app-primary {
-  @apply focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-input px-5 py-2.5 text-body-sm font-medium text-white transition duration-normal;
-  background: linear-gradient(180deg, #4b8fff 0%, #2e6ff2 100%);
-  box-shadow: 0 10px 20px -14px rgba(37, 99, 235, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  @apply focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-pill px-5 py-2.5 text-body-sm font-bold text-white transition duration-fast;
+  background-color: var(--tw-blue);
+  box-shadow: none;
 }
 .btn-app-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 16px 26px -16px rgba(37, 99, 235, 0.8);
+  filter: brightness(0.95);
 }
 .btn-app-primary:disabled {
-  @apply cursor-not-allowed opacity-60;
+  @apply cursor-not-allowed opacity-50;
 }
 
 .btn-app-secondary {
-  @apply focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-input border px-4 py-2.5 text-body-sm font-medium text-slate-700 transition duration-normal;
-  background: rgba(255, 255, 255, 0.86);
-  border-color: rgba(148, 163, 184, 0.35);
-  box-shadow: var(--shadow-soft);
+  @apply focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-pill border border-line bg-page px-4 py-2.5 text-body-sm font-bold text-ink transition duration-fast;
+  box-shadow: none;
 }
 .btn-app-secondary:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(100, 116, 139, 0.45);
+  background-color: var(--tw-hover);
 }
 
 .btn-app-ghost-danger {
-  @apply focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-input px-3.5 py-2.5 text-body-sm font-medium text-red-600 transition;
+  @apply focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-pill px-3.5 py-2.5 text-body-sm font-bold text-red-600 transition;
 }
 .btn-app-ghost-danger:hover {
   @apply bg-red-50 text-red-700;
 }
 
 .chip-app {
-  @apply inline-flex min-h-[36px] items-center rounded-full border px-3 py-1 text-xs font-medium;
-  border-width: 0;
-  border-color: transparent;
-  background: rgba(255, 255, 255, 0.42);
-  box-shadow:
-    0 0 0 1px rgba(148, 163, 184, 0.22) inset,
-    0 1px 0 rgba(255, 255, 255, 0.55) inset;
-  transition:
-    background-color 150ms ease,
-    box-shadow 150ms ease,
-    backdrop-filter 150ms ease,
-    -webkit-backdrop-filter 150ms ease;
+  @apply inline-flex min-h-[36px] items-center rounded-pill border border-line bg-page px-3 py-1 text-meta font-bold text-ink-secondary transition duration-fast;
 }
 .chip-app:hover,
 .chip-app:focus-visible {
-  background: rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow:
-    0 0 0 1px rgba(148, 163, 184, 0.28) inset,
-    0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  background-color: var(--tw-hover);
 }
 .chip-app.active {
-  @apply bg-brand-600 text-white border-brand-600;
-  border-width: 0;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.22) inset,
-    0 1px 0 rgba(0, 0, 0, 0.08) inset;
+  @apply border-brand-500 bg-brand-500 text-white;
 }
 .chip-app.active:hover,
 .chip-app.active:focus-visible {
-  background: rgba(37, 99, 235, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  filter: brightness(0.95);
 }
 
 .form-divider {
-  @apply border-t;
-  border-color: rgba(148, 163, 184, 0.25);
+  @apply border-t border-line;
 }
 
 .scrollbar-hide {
@@ -490,12 +270,11 @@ body {
   display: none;
 }
 
-/* Keep legacy serif utility aligned with system font */
 .font-serif {
   @apply font-sans;
 }
 
-/* Chat system (single source, deduplicated) */
+/* Chat */
 .chat-container {
   @apply flex h-full min-h-0;
 }
@@ -505,52 +284,33 @@ body {
 }
 
 .chat-sidebar {
-  @apply flex h-full w-[330px] shrink-0 flex-col overflow-hidden rounded-card border;
-  background: var(--color-surface-strong);
-  border-color: var(--color-border-soft);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  @apply flex h-full w-[330px] shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-page;
+  box-shadow: none;
 }
 
 .chat-content {
-  @apply ml-3 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-card border;
-  background: var(--color-surface-strong);
-  border-color: var(--color-border-soft);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  @apply ml-3 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-page;
+  box-shadow: none;
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .glass-panel,
-  .glass-header,
-  .card-app-section,
-  .chat-sidebar,
-  .chat-content {
+  .glass-header {
     background: var(--glass-fallback-bg);
-    border-color: var(--glass-fallback-border);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
 }
 
 @supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
-  .glass-panel,
-  .glass-header,
-  .card-app-section,
-  .chat-sidebar,
-  .chat-content {
+  .glass-header {
     background: var(--glass-fallback-bg);
-    border-color: var(--glass-fallback-border);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
 }
 
 .chat-header {
-  @apply flex items-center justify-between border-b px-4 py-3;
-  border-color: rgba(148, 163, 184, 0.25);
+  @apply flex items-center justify-between border-b border-line px-4 py-3;
 }
 
 .chat-messages {
@@ -558,8 +318,7 @@ body {
 }
 
 .chat-input-container {
-  @apply border-t p-3;
-  border-color: rgba(148, 163, 184, 0.25);
+  @apply border-t border-line p-3;
 }
 
 .chat-input {
@@ -570,10 +329,10 @@ body {
   @apply focus-ring flex min-h-[56px] items-center gap-3 border-l-2 border-transparent px-3 py-2 text-body-sm transition;
 }
 .thread-item:hover {
-  @apply bg-slate-50/70;
+  background-color: var(--tw-hover);
 }
 .thread-item.active {
-  @apply border-l-brand-600 bg-brand-50/80 text-slate-900;
+  @apply border-l-brand-500 bg-brand-50/80 text-ink;
 }
 
 .message-bubble {
@@ -586,17 +345,14 @@ body {
   @apply mr-auto justify-start;
 }
 .message-content {
-  @apply rounded-2xl px-4 py-2.5 text-body-sm;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: rgb(15 23 42);
+  @apply rounded-2xl px-4 py-2.5 text-body-sm border border-line text-ink bg-page;
 }
 .message-bubble.sent .message-content {
-  @apply border-brand-600 bg-brand-600 text-white;
+  @apply border-brand-500 bg-brand-500 text-white;
 }
 
 .avatar-circle {
-  @apply flex items-center justify-center rounded-full bg-brand-600 text-white;
+  @apply flex items-center justify-center rounded-full bg-brand-500 text-white;
 }
 
 .avatar-small {

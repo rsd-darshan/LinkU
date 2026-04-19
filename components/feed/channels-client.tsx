@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { CommentsModal } from "./comments-modal";
+import { PostActionBar } from "./post-action-bar";
 import { ShareModal } from "./share-modal";
-import { Button } from "@/components/ui/button";
 import { StateMessage } from "@/components/ui/state-message";
 import { CardSkeleton } from "@/components/ui/skeleton";
 
@@ -44,9 +45,11 @@ type ChannelComment = {
   createdAt: string;
   parentId: string | null;
   author: {
+    id: string;
     role: "STUDENT" | "MENTOR" | "ADMIN";
     studentProfile: { fullName: string } | null;
     mentorProfile: { fullName: string } | null;
+    imageUrl?: string | null;
   };
 };
 
@@ -85,33 +88,6 @@ function SearchIcon() {
   );
 }
 
-function UpvoteIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="m12 5-6 7h4v7h4v-7h4l-6-7Z" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function CommentIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M4 5h16v10H8l-4 4V5Z" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ShareIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="18" cy="5" r="2" />
-      <circle cx="6" cy="12" r="2" />
-      <circle cx="18" cy="19" r="2" />
-      <path d="M8 11 16 6M8 13l8 5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function roleTag(role: "STUDENT" | "MENTOR" | "ADMIN") {
   if (role === "MENTOR") return "Mentor";
   if (role === "ADMIN") return "Admin";
@@ -129,13 +105,37 @@ export function ChannelsClient() {
   const [joiningChannelId, setJoiningChannelId] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<"new" | "top">("new");
   const [search, setSearch] = useState("");
-  const [commentPanels, setCommentPanels] = useState<Record<string, boolean>>({});
+  const [commentModalPostId, setCommentModalPostId] = useState<string | null>(null);
+  const [currentUserImageUrl, setCurrentUserImageUrl] = useState<string | null>(null);
+  const [currentUserDisplayName, setCurrentUserDisplayName] = useState("");
   const [commentsByPost, setCommentsByPost] = useState<Record<string, ChannelComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [shareCountByPost, setShareCountByPost] = useState<Record<string, number>>({});
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [sharePostId, setSharePostId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const upvoteInFlight = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    void fetch("/api/profile")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(
+        (
+          data: {
+            studentProfile?: { fullName: string } | null;
+            mentorProfile?: { fullName: string } | null;
+            imageUrl?: string | null;
+          } | null
+        ) => {
+          if (!data) return;
+          setCurrentUserImageUrl(data.imageUrl ?? null);
+          setCurrentUserDisplayName(
+            data.studentProfile?.fullName || data.mentorProfile?.fullName || ""
+          );
+        }
+      )
+      .catch(() => {});
+  }, []);
 
   const selectedChannel = useMemo(
     () => joinedChannels.find((channel) => channel.slug === selectedSlug) || null,
@@ -174,6 +174,11 @@ export function ChannelsClient() {
       );
     });
   }, [search, sortedPosts]);
+
+  const commentModalPost = useMemo(
+    () => (commentModalPostId ? posts.find((p) => p.id === commentModalPostId) ?? null : null),
+    [commentModalPostId, posts]
+  );
 
   async function loadMembership() {
     const response = await fetch("/api/channels/membership");
@@ -298,6 +303,8 @@ export function ChannelsClient() {
   }
 
   async function upvotePost(postId: string) {
+    if (upvoteInFlight.current.has(postId)) return;
+    upvoteInFlight.current.add(postId);
     try {
       const response = await fetch(`/api/feed/${postId}/upvote`, { method: "POST" });
       const data = (await response.json()) as { post?: { id: string; upvotes: number; hasUpvoted?: boolean }; error?: string };
@@ -311,6 +318,8 @@ export function ChannelsClient() {
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upvote");
+    } finally {
+      upvoteInFlight.current.delete(postId);
     }
   }
 
@@ -338,17 +347,19 @@ export function ChannelsClient() {
     setCommentsByPost((prev) => ({ ...prev, [postId]: data.comments || [] }));
   }
 
-  async function toggleComments(postId: string) {
-    const open = !commentPanels[postId];
-    setCommentPanels((prev) => ({ ...prev, [postId]: open }));
-    if (open && !commentsByPost[postId]) {
-      try {
-        await loadComments(postId);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed loading comments");
-      }
-    }
+  function toggleComments(postId: string) {
+    setCommentModalPostId((prev) => (prev === postId ? null : postId));
   }
+
+  useEffect(() => {
+    const id = commentModalPostId;
+    if (!id) return;
+    if (commentsByPost[id] !== undefined) return;
+    void loadComments(id).catch((err) =>
+      setError(err instanceof Error ? err.message : "Failed loading comments")
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commentModalPostId]);
 
   async function submitComment(postId: string) {
     const body = (commentDrafts[postId] || "").trim();
@@ -369,7 +380,7 @@ export function ChannelsClient() {
   }
 
   return (
-    <div className="page-content space-y-5">
+    <div className="page-content space-y-6">
       {error ? (
         <StateMessage variant="error" title="Something went wrong" description={error} />
       ) : null}
@@ -382,19 +393,30 @@ export function ChannelsClient() {
 
       {!loading ? (
       <>
-      <section className="card-app">
+      <section
+        aria-labelledby="channel-workspace-heading"
+        className="rounded-2xl border border-line bg-page p-4 shadow-sm sm:p-5"
+      >
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Channel Workspace</p>
-              <h2 className="font-serif text-2xl font-semibold text-slate-900">
+              <p
+                id="channel-workspace-heading"
+                className="text-caption font-semibold uppercase tracking-wide text-ink-tertiary"
+              >
+                Channel workspace
+              </p>
+              <h2 className="mt-1 text-title font-bold tracking-tight text-ink">
                 {selectedChannel ? `/${selectedChannel.slug}` : "All channel posts"}
               </h2>
+              {selectedChannel?.description ? (
+                <p className="mt-1.5 max-w-2xl text-body-sm text-ink-secondary">{selectedChannel.description}</p>
+              ) : null}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Link
                 href="/channels/new"
-                className="chip-app inline-flex items-center gap-1.5 text-slate-700 hover:bg-white/90"
+                className="chip-app inline-flex items-center gap-1.5 text-ink-secondary hover:bg-page-subtle"
                 title="Create channel"
                 aria-label="Create channel"
               >
@@ -403,7 +425,7 @@ export function ChannelsClient() {
               </Link>
               <Link
                 href={selectedSlug ? `/channels/post?slug=${selectedSlug}` : "/channels/post"}
-                className="chip-app inline-flex items-center gap-1.5 text-slate-700 hover:bg-white/90"
+                className="chip-app inline-flex items-center gap-1.5 text-ink-secondary hover:bg-page-subtle"
                 title="Create post"
                 aria-label="Create post"
               >
@@ -412,7 +434,7 @@ export function ChannelsClient() {
               </Link>
               <Link
                 href="/channels"
-                className="chip-app inline-flex items-center gap-1.5 text-slate-700 hover:bg-white/90"
+                className="chip-app inline-flex items-center gap-1.5 text-ink-secondary hover:bg-page-subtle"
                 title="Refresh feed"
                 aria-label="Refresh feed"
               >
@@ -421,57 +443,73 @@ export function ChannelsClient() {
               </Link>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="relative w-full lg:max-w-3xl">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-              <SearchIcon />
-            </span>
-            <input
-              className="input-app min-h-0 rounded-pill border-slate-300 py-3 pl-8 pr-3"
-              placeholder="Search posts, channels, or authors"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Search posts, channels, or authors"
-            />
-          </div>
+      <section className="rounded-xl border border-line bg-page-subtle p-4 sm:p-5" aria-label="Search posts in channels">
+        <p className="mb-2 text-caption font-semibold uppercase tracking-wide text-ink-tertiary">Find in feed</p>
+        <div className="relative w-full lg:max-w-3xl">
+          <span
+            className="pointer-events-none absolute inset-y-0 left-0 flex w-11 items-center justify-center text-ink-tertiary"
+            aria-hidden="true"
+          >
+            <SearchIcon />
+          </span>
+          <input
+            type="search"
+            className="focus-ring min-h-[44px] w-full rounded-full border border-line bg-page py-2.5 pl-11 pr-4 text-body-sm text-ink outline-none transition placeholder:text-ink-secondary hover:bg-page-subtle focus:border-brand-500 focus:bg-page focus:ring-1 focus:ring-brand-500"
+            placeholder="Search posts, channels, or authors"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Search posts, channels, or authors"
+            autoComplete="off"
+          />
+        </div>
+      </section>
 
-          <div className="flex flex-wrap items-center gap-2">
+      <section className="rounded-xl border border-line bg-page p-4 shadow-sm sm:p-5" aria-label="Pick a channel">
+        <p className="mb-3 text-caption font-semibold uppercase tracking-wide text-ink-tertiary">Switch channel</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={`chip-app chip-filter-channel transition ${
+              !selectedSlug ? "active" : "text-ink-secondary"
+            }`}
+            onClick={() => setSelectedSlug("")}
+          >
+            All channels
+          </button>
+          {joinedChannels.map((channel) => (
             <button
+              key={channel.id}
               type="button"
               className={`chip-app chip-filter-channel transition ${
-                !selectedSlug
-                  ? "active"
-                  : "text-slate-700"
+                selectedSlug === channel.slug ? "active" : "text-ink-secondary"
               }`}
-              onClick={() => setSelectedSlug("")}
+              onClick={() => setSelectedSlug(channel.slug)}
             >
-              All channels
+              /{channel.slug}
             </button>
-            {joinedChannels.map((channel) => (
-              <button
-                key={channel.id}
-                type="button"
-                className={`chip-app chip-filter-channel transition ${
-                  selectedSlug === channel.slug
-                    ? "active"
-                    : "text-slate-700"
-                }`}
-                onClick={() => setSelectedSlug(channel.slug)}
-              >
-                /{channel.slug}
-              </button>
-            ))}
-          </div>
+          ))}
+        </div>
 
-          {suggestedChannels.length > 0 ? (
-            <div className="rounded-xl border border-slate-200/50 bg-white/60 p-3 backdrop-blur-sm">
-              <p className="text-xs font-medium text-slate-700">Discover channels to join first</p>
-              <div className="mt-2 flex flex-wrap gap-2">
+        {suggestedChannels.length > 0 ? (
+          <>
+            <div className="my-5 flex items-center gap-3" role="separator" aria-hidden="true">
+              <span className="h-px min-w-[2rem] flex-1 bg-line" />
+              <span className="shrink-0 text-caption font-semibold uppercase tracking-wide text-ink-tertiary">
+                Suggested to join
+              </span>
+              <span className="h-px min-w-[2rem] flex-1 bg-line" />
+            </div>
+            <div className="rounded-lg border border-dashed border-line bg-page-subtle/80 p-3 sm:p-4">
+              <p className="text-body-sm text-ink-secondary">Browse communities you are not in yet — join to read and post.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
                 {suggestedChannels.slice(0, 6).map((channel) => (
                   <button
                     key={channel.id}
                     type="button"
-                    className="chip-app text-slate-700 transition hover:bg-white/90"
+                    className="chip-app text-ink-secondary transition hover:bg-page"
                     onClick={() => void joinChannel(channel.id, channel.slug)}
                     disabled={joiningChannelId === channel.id}
                   >
@@ -480,62 +518,70 @@ export function ChannelsClient() {
                 ))}
               </div>
             </div>
-          ) : null}
-        </div>
+          </>
+        ) : null}
       </section>
 
-      <div className="grid gap-6">
-        <main className="mx-auto w-full max-w-6xl space-y-5">
-          {selectedSlug && !isSelectedJoined ? (
-            <section className="rounded-2xl border border-amber-200/80 bg-amber-50/80 p-5 shadow-sm backdrop-blur-sm">
-              <h3 className="text-sm font-semibold text-amber-900">
-                Join /{selectedSuggestedChannel?.slug || selectedSlug} to view this channel feed
-              </h3>
-              <p className="mt-1 text-sm text-amber-800">
-                Reddit-style flow: join first, then you can browse and post in this community.
-              </p>
-              {selectedSuggestedChannel ? (
-                <button
-                  type="button"
-                  className="mt-3 chip-app border-amber-300 text-amber-800 hover:bg-amber-100/70"
-                  onClick={() => void joinChannel(selectedSuggestedChannel.id, selectedSuggestedChannel.slug)}
-                  disabled={joiningChannelId === selectedSuggestedChannel.id}
-                >
-                  {joiningChannelId === selectedSuggestedChannel.id ? "Joining..." : `Join /${selectedSuggestedChannel.slug}`}
-                </button>
-              ) : null}
-            </section>
-          ) : null}
+      <div className="space-y-6">
+        {selectedSlug && !isSelectedJoined ? (
+          <section className="rounded-2xl border-2 border-amber-200 bg-amber-50/90 p-4 shadow-sm sm:p-5">
+            <p className="text-caption font-semibold uppercase tracking-wide text-amber-900/90">Membership required</p>
+            <h3 className="mt-1 text-title-sm font-bold text-amber-950">
+              Join /{selectedSuggestedChannel?.slug || selectedSlug} to view this feed
+            </h3>
+            <p className="mt-2 text-body-sm text-amber-900/85">
+              Join the channel first, then you can browse posts and publish in this community.
+            </p>
+            {selectedSuggestedChannel ? (
+              <button
+                type="button"
+                className="btn-app-secondary mt-4 border-amber-300 bg-page text-amber-950 hover:bg-amber-100/80"
+                onClick={() => void joinChannel(selectedSuggestedChannel.id, selectedSuggestedChannel.slug)}
+                disabled={joiningChannelId === selectedSuggestedChannel.id}
+              >
+                {joiningChannelId === selectedSuggestedChannel.id ? "Joining..." : `Join /${selectedSuggestedChannel.slug}`}
+              </button>
+            ) : null}
+          </section>
+        ) : null}
 
-          <section className="space-y-4">
-            <div className="card-app flex items-center justify-between">
-              <h2 className="font-serif text-xl font-semibold text-slate-900">
-                {selectedChannel ? `/${selectedChannel.slug} feed` : "Recent posts across channels"}
-              </h2>
-              <div className="flex items-center gap-2">
+        <section className="space-y-4" aria-label="Channel posts">
+          <div className="rounded-2xl border border-line bg-page px-4 py-3 shadow-sm sm:px-5 sm:py-3.5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-caption font-semibold uppercase tracking-wide text-ink-tertiary">Posts</p>
+                <h2 className="mt-0.5 text-title-sm font-bold text-ink">
+                  {selectedChannel ? `/${selectedChannel.slug}` : "All channels"} — feed
+                </h2>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
-                  className={`chip-app ${
-                    sortMode === "new" ? "active" : "text-slate-700"
-                  }`}
+                  className={`chip-app ${sortMode === "new" ? "active" : "text-ink-secondary"}`}
                   onClick={() => setSortMode("new")}
                 >
                   New
                 </button>
                 <button
                   type="button"
-                  className={`chip-app ${
-                    sortMode === "top" ? "active" : "text-slate-700"
-                  }`}
+                  className={`chip-app ${sortMode === "top" ? "active" : "text-ink-secondary"}`}
                   onClick={() => setSortMode("top")}
                 >
                   Top
                 </button>
-                <p className="text-xs text-slate-500">{visiblePosts.length} posts</p>
+                <span className="rounded-full bg-page-subtle px-2.5 py-1 text-caption font-semibold text-ink-secondary">
+                  {visiblePosts.length} posts
+                </span>
               </div>
             </div>
+          </div>
+
+          <div className="space-y-3">
             {isSelectedJoined || !selectedSlug ? visiblePosts.map((post) => (
-              <article key={post.id} className="card-app">
+              <article
+                key={post.id}
+                className="rounded-2xl border border-line bg-page p-4 shadow-sm transition-shadow duration-fast ease-smooth hover:shadow-md sm:p-5"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
@@ -569,89 +615,54 @@ export function ChannelsClient() {
                     )}
                   </div>
                 ) : null}
-                <div className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-500">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                        post.hasUpvoted
-                          ? "border-slate-900 bg-slate-900 text-white"
-                          : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                      }`}
-                      onClick={() => void upvotePost(post.id)}
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        <UpvoteIcon />
-                        <span>{post.hasUpvoted ? "Upvoted" : "Upvote"} ({post.upvotes || 0})</span>
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                      onClick={() => void toggleComments(post.id)}
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        <CommentIcon />
-                        <span>Comment ({commentsByPost[post.id]?.length || 0})</span>
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700 transition hover:bg-slate-50"
-                      onClick={() => void sharePost(post.id)}
-                    >
-                      <span className="inline-flex items-center gap-1">
-                        <ShareIcon />
-                        <span>Share ({shareCountByPost[post.id] || 0})</span>
-                      </span>
-                    </button>
-                  </div>
+                <div className="mt-4 w-full border-t border-line/70 pt-3">
+                  <PostActionBar
+                    upvotes={post.upvotes || 0}
+                    commentCount={commentsByPost[post.id]?.length || 0}
+                    shareCount={shareCountByPost[post.id] || 0}
+                    hasUpvoted={Boolean(post.hasUpvoted)}
+                    commentsPanelOpen={commentModalPostId === post.id}
+                    onUpvote={() => void upvotePost(post.id)}
+                    onToggleComments={() => void toggleComments(post.id)}
+                    onShare={() => void sharePost(post.id)}
+                  />
                 </div>
-                {commentPanels[post.id] ? (
-                  <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <div className="space-y-2">
-                      {(commentsByPost[post.id] || []).map((comment) => (
-                        <div key={comment.id} className="rounded-md bg-white p-2">
-                          <p className="text-xs text-slate-500">
-                            {comment.author.studentProfile?.fullName || comment.author.mentorProfile?.fullName || "User"}{" "}
-                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700">
-                              {roleTag(comment.author.role)}
-                            </span>
-                          </p>
-                          <p className="mt-1 text-sm text-slate-700">{comment.body}</p>
-                        </div>
-                      ))}
-                      {(commentsByPost[post.id] || []).length === 0 ? (
-                        <p className="text-xs text-slate-500">No comments yet.</p>
-                      ) : null}
-                    </div>
-                    <div className="mt-3 flex items-center gap-2">
-                      <input
-                        className="input-app min-h-0 flex-1 rounded-input"
-                        placeholder="Write a comment..."
-                        value={commentDrafts[post.id] || ""}
-                        onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                        aria-label="Write a comment"
-                      />
-                      <Button type="button" variant="secondary" onClick={() => void submitComment(post.id)}>
-                        Send
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
               </article>
             )) : null}
-            {((isSelectedJoined || !selectedSlug) && visiblePosts.length === 0) ? (
-              <StateMessage
-                variant="empty"
-                title={search.trim() ? "No matching posts" : "No channel posts yet"}
-                description={search.trim() ? "Try a different search term." : "Join a channel and post, or create a new channel."}
-              />
+          </div>
+            {isSelectedJoined || !selectedSlug ? (
+              visiblePosts.length === 0 ? (
+                <StateMessage
+                  variant="empty"
+                  title={search.trim() ? "No matching posts" : "No channel posts yet"}
+                  description={
+                    search.trim()
+                      ? "Try a different search term."
+                      : "Join a channel and post, or create a new channel."
+                  }
+                />
+              ) : null
             ) : null}
-          </section>
-        </main>
+        </section>
       </div>
       </>
+      ) : null}
+      {commentModalPost ? (
+        <CommentsModal
+          open
+          onClose={() => setCommentModalPostId(null)}
+          postId={commentModalPost.id}
+          postTitle={commentModalPost.title}
+          comments={commentsByPost[commentModalPost.id] || []}
+          variant="flat"
+          commentDraft={commentDrafts[commentModalPost.id] || ""}
+          onCommentDraftChange={(value) =>
+            setCommentDrafts((prev) => ({ ...prev, [commentModalPost.id]: value }))
+          }
+          onSubmitComment={() => void submitComment(commentModalPost.id)}
+          currentUserImageUrl={currentUserImageUrl}
+          currentUserDisplayName={currentUserDisplayName}
+        />
       ) : null}
       {sharePostId && (
         <ShareModal

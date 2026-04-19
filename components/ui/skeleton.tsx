@@ -7,7 +7,10 @@ type SkeletonProps = {
 export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
-      className={clsx("rounded-input bg-gradient-to-r from-slate-200/80 via-white/70 to-slate-200/80 animate-pulse", className)}
+      className={clsx(
+        "rounded-input bg-gradient-to-r animate-pulse from-line via-page-subtle to-line",
+        className
+      )}
       aria-hidden="true"
     />
   );

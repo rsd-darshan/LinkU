@@ -10,6 +10,9 @@ type ThreadOption = {
   type: "direct";
   label: string;
   receiverId: string;
+  lastMessageAt?: string;
+  lastMessagePreview?: string;
+  hasUnreadFromOther?: boolean;
 };
 
 type MessageRow = {
@@ -42,7 +45,39 @@ function MessagesContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isStartingCall, setIsStartingCall] = useState(false);
+  const [threadOpenedAt, setThreadOpenedAt] = useState<Record<string, string>>({});
   const { startVideoCall } = useAgoraCall();
+
+  const hydrateThreadActivity = useCallback(
+    async (rawThreads: ThreadOption[], userId: string) => {
+      const enriched = await Promise.all(
+        rawThreads.map(async (thread) => {
+          try {
+            const res = await fetch(`/api/messages?userId=${thread.receiverId}`);
+            const data = (await res.json()) as { messages?: MessageRow[] };
+            const list = data.messages || [];
+            const last = list[list.length - 1];
+            if (!last) return thread;
+            return {
+              ...thread,
+              lastMessageAt: last.createdAt,
+              lastMessagePreview: last.body,
+              hasUnreadFromOther: last.senderId !== userId
+            };
+          } catch {
+            return thread;
+          }
+        })
+      );
+
+      return enriched.sort((a, b) => {
+        const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+        const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+        return tb - ta;
+      });
+    },
+    []
+  );
 
   useEffect(() => {
     const loadThreads = async () => {
@@ -80,9 +115,11 @@ function MessagesContent() {
           };
         });
 
-        setThreads(formattedThreads);
-        if (formattedThreads.length > 0) {
-          setSelectedThreadId(formattedThreads[0].id);
+        const hydrated = await hydrateThreadActivity(formattedThreads, profile.user.id);
+        setThreads(hydrated);
+        if (hydrated.length > 0) {
+          setSelectedThreadId(hydrated[0].id);
+          setThreadOpenedAt((prev) => ({ ...prev, [hydrated[0].id]: new Date().toISOString() }));
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load conversations");
@@ -92,7 +129,7 @@ function MessagesContent() {
     };
 
     loadThreads();
-  }, []);
+  }, [hydrateThreadActivity]);
 
   const selectedThread = useMemo(() => threads.find((t) => t.id === selectedThreadId), [selectedThreadId, threads]);
   const filteredThreads = useMemo(() => {
@@ -111,11 +148,35 @@ function MessagesContent() {
       const res = await fetch(`/api/messages?userId=${selectedThread.receiverId}`);
       const data = (await res.json()) as { messages: MessageRow[]; error?: string };
       if (!res.ok) throw new Error(data.error || "Failed to load messages");
-      setMessages(data.messages || []);
+      const nextMessages = data.messages || [];
+      setMessages(nextMessages);
+      setThreads((prev) =>
+        prev
+          .map((thread) => {
+            if (thread.id !== selectedThread.id) return thread;
+            const last = nextMessages[nextMessages.length - 1];
+            if (!last) return thread;
+            const openedAt = threadOpenedAt[thread.id];
+            const unreadFromOther = Boolean(
+              openedAt && last.senderId !== currentUserId && new Date(last.createdAt).getTime() > new Date(openedAt).getTime()
+            );
+            return {
+              ...thread,
+              lastMessageAt: last.createdAt,
+              lastMessagePreview: last.body,
+              hasUnreadFromOther: unreadFromOther
+            };
+          })
+          .sort((a, b) => {
+            const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+            const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+            return tb - ta;
+          })
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load messages");
     }
-  }, [selectedThread]);
+  }, [selectedThread, threadOpenedAt, currentUserId]);
 
   useEffect(() => {
     void loadMessages();
@@ -123,7 +184,10 @@ function MessagesContent() {
 
   useEffect(() => {
     if (!selectedThread) return;
-    const interval = setInterval(() => void loadMessages(), 2000);
+    const interval = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void loadMessages();
+    }, 6000);
     return () => clearInterval(interval);
   }, [selectedThread, loadMessages]);
 
@@ -136,7 +200,29 @@ function MessagesContent() {
     });
     const data = (await res.json()) as { message?: MessageRow; error?: string };
     if (!res.ok || !data.message) throw new Error(data.error || "Failed to send");
-    setMessages((prev) => [...prev, data.message as MessageRow]);
+    const nextMessage = data.message as MessageRow;
+    setMessages((prev) => [...prev, nextMessage]);
+    setThreads((prev) =>
+      prev
+        .map((thread) =>
+          thread.id === selectedThread.id
+            ? {
+                ...thread,
+                lastMessageAt: nextMessage.createdAt,
+                lastMessagePreview: nextMessage.body,
+                hasUnreadFromOther: false
+              }
+            : thread
+        )
+        .sort((a, b) => {
+          const ta = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+          const tb = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+          return tb - ta;
+        })
+    );
+    setThreadOpenedAt((prev) =>
+      selectedThread ? { ...prev, [selectedThread.id]: new Date().toISOString() } : prev
+    );
   }
 
   const handleVideoCall = useCallback(async () => {
@@ -224,7 +310,10 @@ function MessagesContent() {
                   <li key={thread.id}>
                     <button
                       type="button"
-                      onClick={() => setSelectedThreadId(thread.id)}
+                      onClick={() => {
+                        setSelectedThreadId(thread.id);
+                        setThreadOpenedAt((prev) => ({ ...prev, [thread.id]: new Date().toISOString() }));
+                      }}
                       aria-pressed={isSelected}
                       className={`thread-item w-full text-left ${isSelected ? "active" : ""}`}
                     >
@@ -234,8 +323,13 @@ function MessagesContent() {
                       >
                         {thread.label.charAt(0).toUpperCase()}
                       </span>
-                      <span className={`min-w-0 flex-1 truncate text-body-sm ${isSelected ? "font-semibold text-slate-900" : "text-slate-700"}`}>
-                        {thread.label}
+                      <span className="min-w-0 flex-1">
+                        <span className={`block truncate text-body-sm ${isSelected ? "font-semibold text-slate-900" : "text-slate-700"}`}>
+                          {thread.label}
+                        </span>
+                        <span className={`block truncate text-caption ${thread.hasUnreadFromOther ? "font-semibold text-slate-800" : "text-slate-500"}`}>
+                          {thread.lastMessagePreview || "No messages yet"}
+                        </span>
                       </span>
                     </button>
                   </li>
@@ -266,6 +360,16 @@ function MessagesContent() {
             createdAt: new Date(msg.createdAt).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }),
             isOwnMessage: msg.senderId === currentUserId
           }))}
+          newMessagesStartIndex={
+            selectedThread
+              ? messages.findIndex(
+                  (msg) =>
+                    msg.senderId !== currentUserId &&
+                    Boolean(threadOpenedAt[selectedThread.id]) &&
+                    new Date(msg.createdAt).getTime() > new Date(threadOpenedAt[selectedThread.id]).getTime()
+                )
+              : -1
+          }
           onSend={sendMessage}
         />
       </div>

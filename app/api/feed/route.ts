@@ -81,15 +81,38 @@ export async function POST(req: NextRequest) {
     const currentUser = await requireUser();
     const payload = postCreateSchema.parse(await req.json());
 
-    const post = await prisma.post.create({
+    const created = await prisma.post.create({
       data: {
         authorId: currentUser.id,
         title: sanitizeText(payload.title),
         body: sanitizeText(payload.body),
         mediaUrls: payload.mediaUrls,
         channelId: null
+      },
+      include: {
+        _count: { select: { comments: true } },
+        channel: {
+          select: { id: true, slug: true, name: true, universityName: true }
+        },
+        author: {
+          select: {
+            id: true,
+            role: true,
+            studentProfile: { select: { fullName: true } },
+            mentorProfile: { select: { fullName: true } }
+          }
+        }
       }
     });
+
+    const { _count, ...rest } = created;
+    const post = {
+      ...rest,
+      mediaUrls: Array.isArray(rest.mediaUrls) ? rest.mediaUrls : [],
+      commentCount: _count.comments,
+      shareCount: rest.shareCount,
+      hasUpvoted: false
+    };
 
     return ok({ post }, 201);
   } catch (error) {

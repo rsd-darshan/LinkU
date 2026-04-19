@@ -14,6 +14,7 @@ export type ChatMessage = {
 interface ChatWindowProps {
   messages: ChatMessage[];
   onSend: (body: string) => void;
+  newMessagesStartIndex?: number;
   header?: {
     avatarLetter: string;
     name: string;
@@ -37,7 +38,7 @@ function VideoCallIcon() {
 
 const SCROLL_STICKY_THRESHOLD = 100;
 
-export function ChatWindow({ messages, onSend, header }: ChatWindowProps) {
+export function ChatWindow({ messages, onSend, newMessagesStartIndex = -1, header }: ChatWindowProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
@@ -117,26 +118,32 @@ export function ChatWindow({ messages, onSend, header }: ChatWindowProps) {
             <p className="mt-1 text-caption text-slate-400">Send a message to start the conversation.</p>
           </div>
         ) : (
-          <div className="mx-auto flex max-w-2xl flex-col gap-2">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.isOwnMessage ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`group relative max-w-[85%] rounded-2xl px-4 py-2.5 ${
-                    msg.isOwnMessage
-                      ? "rounded-br-md bg-brand-600 text-white"
-                      : "rounded-bl-md bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80"
-                  }`}
-                >
-                  {!msg.isOwnMessage && (
-                    <p className="text-caption font-medium text-slate-500 mb-0.5">{msg.authorLabel}</p>
-                  )}
-                  <p className="whitespace-pre-wrap break-words text-body-sm">{msg.body}</p>
-                  <p className={`mt-1 text-caption ${msg.isOwnMessage ? "text-brand-200" : "text-slate-400"}`}>
-                    {msg.createdAt}
-                  </p>
+          <div className="flex w-full flex-col gap-2">
+            {messages.map((msg, idx) => (
+              <div key={msg.id}>
+                {idx === newMessagesStartIndex ? (
+                  <div className="my-2 flex items-center gap-3">
+                    <span className="h-px flex-1 bg-line" aria-hidden="true" />
+                    <span className="text-caption font-semibold uppercase tracking-wide text-brand-700">New messages</span>
+                    <span className="h-px flex-1 bg-line" aria-hidden="true" />
+                  </div>
+                ) : null}
+                <div className={`flex ${msg.isOwnMessage ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`group relative max-w-[85%] rounded-2xl px-4 py-2.5 ${
+                      msg.isOwnMessage
+                        ? "rounded-br-md bg-brand-600 text-white"
+                        : "rounded-bl-md bg-white text-slate-900 shadow-sm ring-1 ring-slate-200/80"
+                    }`}
+                  >
+                    <p className={`mb-0.5 text-caption font-medium ${msg.isOwnMessage ? "text-brand-100" : "text-slate-500"}`}>
+                      {msg.authorLabel}
+                    </p>
+                    <p className="whitespace-pre-wrap break-words text-body-sm">{msg.body}</p>
+                    <p className={`mt-1 text-caption ${msg.isOwnMessage ? "text-brand-200" : "text-slate-400"}`}>
+                      {msg.createdAt}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -146,7 +153,7 @@ export function ChatWindow({ messages, onSend, header }: ChatWindowProps) {
 
       {header && (
         <form onSubmit={handleSubmit} className="chat-input-container">
-          <div className="mx-auto flex max-w-2xl gap-2">
+          <div className="flex w-full gap-2">
             <label htmlFor="chat-message-input" className="sr-only">Type a message</label>
             <input
               ref={inputRef}

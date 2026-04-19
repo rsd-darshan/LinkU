@@ -1,5 +1,6 @@
+import { Prisma } from "@prisma/client";
 import { requireUser } from "@/lib/auth";
-import { badRequest, handleApiError, ok } from "@/lib/http";
+import { badRequest, handleApiError, notFound, ok } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(
@@ -12,6 +13,11 @@ export async function POST(
     if (!postId) return badRequest("postId is required");
 
     const updated = await prisma.$transaction(async (tx) => {
+      const rows = await tx.$queryRaw<{ id: string }[]>(
+        Prisma.sql`SELECT id FROM "Post" WHERE id = ${postId} FOR UPDATE`
+      );
+      if (!rows[0]) return null;
+
       const existing = await tx.postUpvote.findUnique({
         where: {
           postId_userId: {
@@ -22,7 +28,6 @@ export async function POST(
       });
 
       if (existing) {
-        // Remove upvote (toggle off)
         await tx.postUpvote.delete({
           where: {
             postId_userId: {
@@ -39,7 +44,6 @@ export async function POST(
         });
       }
 
-      // Add upvote (toggle on)
       await tx.postUpvote.create({
         data: {
           postId,
@@ -54,7 +58,7 @@ export async function POST(
       });
     });
 
-    if (!updated) return badRequest("Post not found");
+    if (!updated) return notFound("Post not found");
     
     // Check if user still has upvote after the transaction
     const hasUpvoted = await prisma.postUpvote.findUnique({
