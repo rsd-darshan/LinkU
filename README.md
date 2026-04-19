@@ -1,93 +1,96 @@
-# LinkU — The OS for Student Guidance
+# LinkU
 
 [![CI](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml/badge.svg)](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-## Problem
+**LinkU is an AI-powered student guidance platform combining verified mentors, community support, and admissions execution workflows.**
 
-Millions of students make life-defining education decisions with fragmented advice, generic content, and no real accountability. The process is stressful, expensive, and often leads to poor-fit outcomes.
+`Repository description:` `AI-powered student guidance platform with mentors, community, and admissions workflows.`
 
-## Insight
+## Launch Status
 
-Students do not need "more information." They need a trusted system that helps them choose faster, execute better, and stay accountable.
+**Launching soon.**
 
-## Solution
+LinkU is currently in active build and validation. Core student and mentor journeys are implemented in this codebase, and the team is focused on quality, trust, and measurable outcomes before broad release.
 
-LinkU combines:
+## Why LinkU Exists
 
-- **Verified mentorship** so students learn from people who have already done it
-- **Execution layer** for planning sessions, tracking decisions, and follow-through
-- **Community layer** where students learn from peers and shared journeys
-- **AI support layer** for profile fit, application direction, and smarter next steps
+Students make high-stakes education decisions with fragmented advice:
 
-## Product Vision
+- random social media tips
+- expensive counseling that is often inaccessible
+- generic AI output without personal context
+- no clear execution system once a plan is made
 
-LinkU is being built as the default operating system for student guidance - where discovery, decision-making, and execution happen in one place.
+LinkU is built to close that gap by combining people, product workflows, and AI in one place.
 
-Think of it as:
+## What Is In The Product (from this codebase)
 
-- trusted mentorship marketplace
-- student-focused professional network
-- guided execution product for real outcomes
+Current implemented surface areas include:
 
-## Features
+- **Mentor discovery and matching:** ranked mentor discovery with explainable scoring signals.
+- **Booking workflow:** student booking flow with session duration, pricing, and booking states.
+- **Payments integration:** Stripe Checkout and webhook-based booking confirmation are implemented.
+- **Messaging and threads:** direct messaging with access controls tied to relationship context.
+- **Community graph:** feed, channels, comments, shares, and networking connections.
+- **Video calls:** Agora-powered call setup and call invitation APIs.
+- **Student profile and onboarding:** profile pages and onboarding forms for guidance context.
+- **LinkU-AI suite:** profile analysis, my-fit scoring, university compare, insights, essay analysis, and LOR/application workflows.
+- **Admin tooling:** admin pages and APIs for moderation, users, mentors, and LinkU-AI data/statistics.
 
-- Personalized mentor discovery and matching
-- Session planning and booking workflow
-- Student networking, feed, and channels
-- Messaging for mentor-student coordination
-- Admin controls for quality and trust
-- LinkU-AI experiences for guidance acceleration
+## Why Students Use LinkU
 
-## Why Now
+- **One workflow, not ten tools:** discover mentors, book sessions, message, and execute in one platform.
+- **Human + AI together:** AI helps with speed; mentors add judgment, context, and accountability.
+- **Outcome-focused design:** product is built around decisions and next steps, not just content consumption.
+- **Trust layer:** verified mentor and admin workflows are part of the core architecture.
+- **Community signal:** students can learn from live peer journeys, not just static content.
 
-- Education decisions are getting more competitive and expensive.
-- Students increasingly trust peer-led and mentor-led guidance over institutions.
-- AI can reduce research time, but students still need human context and accountability.
+## Competitive Landscape
 
-## Business Model
+The market is real and growing. Students currently mix multiple products, including:
 
-- Session-based marketplace revenue
-- Future subscription tiers for students and mentors
-- Premium AI guidance workflows over time
+- **Admissions consulting/counseling players:** Crimson Education, CollegeAdvisor, Empowerly.
+- **Application/admissions tooling:** CollegeVine and other AI-heavy admissions guidance products.
+- **Peer/community-driven options:** Unibuddy, peer mentorship communities, Discord/Reddit groups.
 
-## Go-To-Market
+LinkU's position is not "another counselor directory" and not "AI-only essay tooling."  
+It is a vertically integrated student guidance system that unifies mentorship, community, execution, and admissions AI.
 
-- Start with high-intent students (applications, transfers, scholarships).
-- Grow mentor supply through successful alumni and verified outcomes.
-- Use community content loops (channels/feed) to drive organic demand.
+## Strategic Differentiation
 
-## Moat
+- **Integrated journey moat:** guidance, action, and follow-through live in one system.
+- **Explainable matching today:** ranking logic is tunable and transparent while data scale builds.
+- **Compounding data advantage:** interactions across discovery, booking, messaging, and AI workflows create high-quality product feedback loops.
+- **Trust-first expansion:** quality controls are prioritized over low-trust marketplace growth.
 
-- Trust graph between students and mentors
-- Outcome-driven interaction data across journeys
-- Tight loop between community insight, human mentorship, and AI support
+## Business Model Direction
 
-## Tradeoffs
+- Session-based marketplace take rate on mentorship bookings.
+- Premium AI and execution workflows as usage deepens.
+- Potential subscription layers for students and mentor operators.
 
-- Focused on end-to-end guidance experience before adding many edge features.
-- Prioritizing quality mentors and trust over fast but low-quality marketplace expansion.
-- Keeping core matching explainable before moving to heavier black-box ML.
+## Current Tech Stack
 
-## Future Roadmap
+- **Framework:** Next.js (App Router), React, TypeScript, Tailwind CSS
+- **Auth:** Clerk
+- **Database:** PostgreSQL + Prisma
+- **Payments:** Stripe
+- **Storage:** S3-compatible upload flow with presigned URLs (or local upload fallback)
+- **Video:** Agora
+- **Validation/testing:** Zod + Vitest
 
-- AI matching informed by outcomes and behavioral signals
-- Mentor products (bundles, cohort sessions, recurring programs)
-- Institutional and partnership channels
-- Deeper analytics and progress tracking for student outcomes
+## Near-Term Roadmap
 
-## Demo
-
-- Product walkthrough video: _coming soon_
-- UI screenshots: _coming soon_
-
-## Why I Built This
-
-I built LinkU to solve a real pain: students with ambition often do not have access to structured, credible guidance when it matters most. This product exists to close that gap and turn uncertainty into confident action.
+- Launch hardening: reliability, moderation, and observability.
+- Better notifications and real-time collaboration loops.
+- Stronger outcome tracking and student progress intelligence.
+- Expanded mentor-side products (programs, bundles, repeatable offerings).
 
 ## For Engineers
 
-Detailed architecture and implementation docs are available here:
+Architecture and implementation docs:
 
 - [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md)
 - [`docs/REPO_STRUCTURE.md`](./docs/REPO_STRUCTURE.md)
+- [`PRODUCTION.md`](./PRODUCTION.md)
