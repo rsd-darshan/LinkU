@@ -3,9 +3,7 @@
 [![CI](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml/badge.svg)](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-**LinkU is an AI-powered student guidance platform combining verified mentors, community support, and admissions execution workflows.**
-
-`Repository description:` `AI-powered student guidance platform with mentors, community, and admissions workflows.`
+**LinkU is a student guidance platform that combines verified mentorship, community learning, and admissions-focused AI workflows in one product.**
 
 ## Launch Status
 
