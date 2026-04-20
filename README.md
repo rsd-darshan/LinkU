@@ -44,15 +44,15 @@ College admissions discussion on the open web is spread across **hundreds** of s
 
 ### Why this vs. Reddit alone?
 
-The largest admissions communities on Reddit are real and huge—but they are **separate islands**. A few core examples (approximate public member counts; Reddit changes these over time—treat as order-of-magnitude):
+The largest admissions communities on Reddit are real and huge—but they are **separate islands**. A few core examples (approximate public member counts; Reddit changes these over time):
 
 | Subreddit | Role | Approx. members* |
 |-----------|------|-------------------|
-| [r/ApplyingToCollege](https://www.reddit.com/r/ApplyingToCollege/) | The flagship US admissions hub: essays, ECs, decisions, strategy, and general application talk. | ~500k |
+| [r/ApplyingToCollege](https://www.reddit.com/r/ApplyingToCollege/) | The flagship US admissions hub: essays, ECs, decisions, strategy, and general application talk. | 1.3M+ |
 | [r/college](https://www.reddit.com/r/college/) | Broader college life: academics, campus life, transfers—not only application season. | ~2.9M |
-| [r/IntltoUSA](https://www.reddit.com/r/IntltoUSA/) | International students targeting US schools: visas, testing, fit, and culture shock. | ~100k |
+| [r/IntltoUSA](https://www.reddit.com/r/IntltoUSA/) | International students targeting US schools: visas, testing, fit, and culture shock. | 52k+ |
 
-\*Rounded from public Reddit “members” figures; **not** a live API snapshot—verify on each subreddit’s sidebar if you need exact numbers.
+\*From public Reddit “members” figures; **not** a live API snapshot—verify on each subreddit’s sidebar if you need exact numbers.
 
 LinkU’s goal is not to replace those communities overnight, but to give students **one place** where feed, channels, mentors, bookings, and AI workflows connect—so advice turns into **next steps** instead of endless scrolling.
 
