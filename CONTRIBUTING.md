@@ -2,20 +2,37 @@
 
 ## Local setup
 
-1. `npm ci`
-2. `cp .env.example .env.local` and fill in secrets (see README).
-3. `npm run prisma:generate` then `npm run prisma:migrate`
-4. `npm run dev`
+1. **Node:** 20+ (22 recommended — see [`.nvmrc`](./.nvmrc) and CI).
+2. **Postgres:** Either your own instance or from the repo:
+   ```bash
+   docker compose up -d
+   ```
+   (Default URL is in [`.env.example`](./.env.example): port **5433**.)
+3. **Install and env:**
+   ```bash
+   npm ci
+   cp .env.example .env.local
+   ```
+   Set `DATABASE_URL`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, and `CLERK_SECRET_KEY` at minimum (see [README.md](./README.md)).
+4. **Prisma:**
+   ```bash
+   npm run prisma:generate
+   npm run prisma:migrate
+   ```
+5. **Optional seed** (university list for LinkU-AI):
+   ```bash
+   npx prisma db seed
+   ```
+6. **Dev server:**
+   ```bash
+   npm run dev
+   ```
 
 ## Before opening a pull request
-
-Run the same checks as CI, then a production build:
 
 ```bash
 npm run ci && npm run build
 ```
-
-Use a **real** Clerk publishable key in `.env.local` for full auth behavior, or leave `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` empty so the app follows the same non-Clerk shell used in CI (see `lib/clerk-publishable-key.ts`).
 
 ## Code style
 

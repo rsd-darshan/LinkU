@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes are applied on the default branch (`main`) for this portfolio application.
+Security fixes are applied on the default branch (`main`) for this repository.
 
 ## Reporting a vulnerability
 

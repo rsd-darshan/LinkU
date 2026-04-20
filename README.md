@@ -1,134 +1,176 @@
-# LinkU — Your All-in-One Student Guidance Platform
+# LinkU
 
 [![CI](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml/badge.svg)](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-LinkU is a student guidance platform that combines mentorship, peer community, and admissions-focused AI tools.
+Full-stack student guidance app: **mentor discovery & bookings**, **feed & university channels**, **messaging & calls**, and **LinkU-AI** (fit, compare, essay tooling) on **Next.js (App Router)**, **Clerk**, **PostgreSQL**, and **Prisma**.
 
-## Launch Status
+---
 
-**Launching Soon** — Currently in active development and validation.
+## Requirements
 
-Core student and mentor workflows are implemented in this repository. Current work is focused on reliability, moderation, and launch readiness.
+| Tool | Notes |
+|------|--------|
+| **Node.js** | **20+** (local dev). **Node 22** matches [`.nvmrc`](./.nvmrc) and [CI](.github/workflows/ci.yml); use `nvm use` if you use nvm. |
+| **PostgreSQL** | **16+**, or run the bundled Docker service (see below). |
+| **Clerk** | Free [Clerk](https://clerk.com) dev application for sign-in and API protection (see [Clerk](#clerk)). |
 
-## The Problem
+---
 
-Students often make major education decisions with:
+## Quick start
 
-- fragmented advice from social platforms
-- expensive counseling options
-- AI guidance without personal context
-- no consistent system to move from planning to execution
+From the repo root:
 
-This leads to uncertainty and lower-quality outcomes.
+```bash
+git clone https://github.com/rsd-darshan/LinkU.git
+cd LinkU
+npm ci
+```
 
-## Our Solution
+**1. Database**
 
-LinkU addresses this by combining mentors, community workflows, and AI support in one product.
-Students can discover guidance, book sessions, execute plans, and track progress in a single place.
+```bash
+docker compose up -d
+```
+
+This starts Postgres on **host port `5433`** (user/password/db: `linku` / `linku` / `linku`), matching [`.env.example`](./.env.example).
+
+**2. Environment**
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local`: set at least **`DATABASE_URL`**, **`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`**, and **`CLERK_SECRET_KEY`** (see [Environment variables](#environment-variables) and [Clerk](#clerk)).
+
+**3. Schema & optional seed**
+
+```bash
+npm run prisma:generate
+npm run prisma:migrate
+```
+
+Optional — loads US university rows (and supplement prompts where defined) for LinkU-AI flows:
+
+```bash
+npx prisma db seed
+```
+
+**4. Run**
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Sign up/in via Clerk completes onboarding routes.
+
+**5. Sanity checks**
+
+```bash
+npm run ci && npm run build
+```
+
+With the app and DB up: `GET /api/health` should return **`200`** and `"database": "ok"` (see [`app/api/health/route.ts`](./app/api/health/route.ts)).
+
+---
+
+## Environment variables
+
+| Variable | Required for local app | Purpose |
+|----------|------------------------|---------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string. |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Yes* | Clerk browser key; must be a real `pk_test_…` / `pk_live_…` string long enough to pass [`isUsableClerkPublishableKey`](./lib/clerk-publishable-key.ts). |
+| `CLERK_SECRET_KEY` | Yes* | Clerk server secret (`sk_test_…` / `sk_live_…`). |
+| `NEXT_PUBLIC_APP_URL` | No | Defaults to `http://localhost:3000` in code where used. |
+| `OPENROUTER_API_KEY` | No | LinkU-AI features that call the model layer. |
+| `AGORA_APP_ID`, `AGORA_APP_CERTIFICATE` | No | Video calls. |
+| `STRIPE_*` | No | Payments / webhooks when enabled. |
+| `S3_*` | No | Presigned uploads; otherwise local upload path applies. |
+| `LINKU_AI_CRON_SECRET` | No | Protects `POST /api/linku-ai/cron/fetch` when set. |
+
+\*The UI can render without a usable publishable key, but **middleware and most routes expect Clerk** ([`proxy.ts`](./proxy.ts)). For a normal clone-and-run, configure both Clerk keys.
+
+Full template: [`.env.example`](./.env.example).
+
+---
+
+## Clerk
+
+1. Create a Clerk application (development instance).
+2. Add **`http://localhost:3000`** to allowed origins / redirect URLs as needed.
+3. Copy **Publishable key** and **Secret key** into `.env.local`.
+4. After first sign-in, your user is synced to Postgres ([`lib/auth.ts`](./lib/auth.ts)); use Clerk dashboard or DB to adjust roles (e.g. `ADMIN`) if you need admin routes.
+
+---
 
 ## Feeds & community
 
-College admissions discussion on the open web is spread across **hundreds** of scattered Reddit communities and millions of students posting in parallel threads with no shared identity, weak discoverability, and uneven moderation. LinkU brings that energy into **one platform** with clearer structure: a **main feed**, **university (school) channels**, and tooling that sits next to mentorship and messaging—not a clone of Reddit, but a more organized home for the same kinds of conversations.
+Public admissions discussion is fragmented across many Reddit-style communities. LinkU keeps **one product** with a **main feed**, **university-oriented channels**, and the rest of the stack (mentors, DMs, AI) in the same place.
 
 ### Main feed
 
-- **For you** — posts ranked for the signed-in user (signals from profile and activity).
-- **Top** — posts ordered by engagement (e.g. upvotes), then recency.
-- **Channel filter** — optional filter by channel (e.g. `?channel=<slug>`) so the same feed can focus on one university’s space when you want depth over breadth.
+- **For you** — ranked for the signed-in user.
+- **Top** — by engagement (e.g. upvotes), then recency.
+- **Channel filter** — e.g. `?channel=<slug>` on the feed API for a university channel.
 
 ### University & school channels
 
-- **Channels** are named spaces (often tied to a **university or school** via display name and metadata) where students and mentors post, comment, upvote, and share—like a dedicated sub-community per institution, but inside LinkU with consistent profiles and moderation hooks.
-- Students **browse channels**, **join** channels they care about, and **publish** into a channel so discussion stays contextual (e.g. “this thread is about School X applicants”) instead of getting lost in a single global firehose.
+Channels are first-class spaces (name, slug, optional university label) for posts, comments, upvotes, and shares—see [`app/api/channels/route.ts`](./app/api/channels/route.ts) and [`app/api/feed/route.ts`](./app/api/feed/route.ts).
 
-### Why this vs. Reddit alone?
-
-The largest admissions communities on Reddit are real and huge—but they are **separate islands**. A few core examples (approximate public member counts; Reddit changes these over time):
+### Reference Reddit communities (scale)
 
 | Subreddit | Role | Approx. members* |
-|-----------|------|-------------------|
-| [r/ApplyingToCollege](https://www.reddit.com/r/ApplyingToCollege/) | The flagship US admissions hub: essays, ECs, decisions, strategy, and general application talk. | 1.3M+ |
-| [r/college](https://www.reddit.com/r/college/) | Broader college life: academics, campus life, transfers—not only application season. | ~2.9M |
-| [r/IntltoUSA](https://www.reddit.com/r/IntltoUSA/) | International students targeting US schools: visas, testing, fit, and culture shock. | 52k+ |
+|-----------|------|------------------|
+| [r/ApplyingToCollege](https://www.reddit.com/r/ApplyingToCollege/) | US admissions hub (essays, ECs, decisions, strategy). | 1.3M+ |
+| [r/college](https://www.reddit.com/r/college/) | College life, academics, transfers. | ~2.9M |
+| [r/IntltoUSA](https://www.reddit.com/r/IntltoUSA/) | International students applying to the US. | 52k+ |
 
-\*From public Reddit “members” figures; **not** a live API snapshot—verify on each subreddit’s sidebar if you need exact numbers.
+\*Public Reddit “members” counts; not a live snapshot—check each subreddit for current numbers.
 
-LinkU’s goal is not to replace those communities overnight, but to give students **one place** where feed, channels, mentors, bookings, and AI workflows connect—so advice turns into **next steps** instead of endless scrolling.
+---
 
-## Core Features (Currently Implemented)
+## What’s in the repo (high level)
 
-- **Mentor discovery and matching:** ranked mentor discovery with explainable scoring signals.
-- **Booking workflow:** student booking flow with session duration, pricing, and booking states.
-- **Booking lifecycle:** session scheduling, pricing, and state transitions are implemented.
-- **Messaging and threads:** direct messaging with access controls tied to relationship context.
-- **Community graph:** feed, channels, comments, shares, and networking connections.
-- **Video calls:** Agora-powered call setup and call invitation APIs.
-- **Student profile and onboarding:** profile pages and onboarding forms for guidance context.
-- **LinkU-AI suite:** profile analysis, my-fit scoring, university compare, insights, essay analysis, and LOR/application workflows.
-- **Admin tooling:** admin pages and APIs for moderation, users, mentors, and LinkU-AI data/statistics.
+- **Mentors:** discovery, matching signals, profiles, booking flow and statuses.
+- **Community:** feed, channels, comments, shares, networking / connections.
+- **Messaging:** threads and access rules tied to connections.
+- **Calls:** Agora token route and client integration (needs Agora env when exercising calls).
+- **LinkU-AI:** profile, applications, compare, insights, essay analysis, cron hook for data pipeline (OpenRouter and cron secret when using those paths).
+- **Admin:** admin UI and APIs for users, mentors, LinkU-AI raw data / stats.
 
-## Why Students Choose LinkU
+Details: [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md), [`docs/REPO_STRUCTURE.md`](./docs/REPO_STRUCTURE.md), [`PRODUCTION.md`](./PRODUCTION.md).
 
-- **One platform, not ten tools:** everything from discovery to execution lives in one place.
-- **Human + AI synergy:** AI for speed and scale; verified mentors for judgment, context, and accountability.
-- **Outcome-oriented design:** built around decisions and next actions, not passive content.
-- **Trust-first approach:** verified mentors and moderation workflows are built into the core.
-- **Live community signal:** students learn from real peer journeys happening in real time.
+---
 
-## How LinkU Stands Out
+## Tech stack
 
-The market is growing, but most solutions stay in one category:
+- **Framework:** Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS  
+- **Auth:** Clerk (`@clerk/nextjs`)  
+- **Data:** PostgreSQL, Prisma  
+- **Payments:** Stripe (optional, wired where used)  
+- **Storage:** S3-compatible presigns or local uploads  
+- **Video:** Agora  
+- **Validation / tests:** Zod, Vitest  
 
-- **Admissions consulting/counseling players:** Crimson Education, CollegeAdvisor, Empowerly.
-- **Application/admissions tooling:** CollegeVine and other AI-heavy admissions guidance products.
-- **Peer/community-driven options:** Unibuddy, peer mentorship communities, Discord/Reddit groups.
+---
 
-LinkU is differentiated by combining:
+## Troubleshooting
 
-- verified mentorship
-- active community
-- execution workflows
-- deep admissions AI
+| Issue | What to check |
+|--------|----------------|
+| `Can't reach database` / Prisma errors | Postgres running; `DATABASE_URL` host/port (**`5433`** if using `docker-compose.yml`). |
+| Redirect loops or 401 on routes | Clerk keys in `.env.local`; Clerk URLs and localhost allowed in Clerk dashboard. |
+| Empty feed / no channels | Expected on a fresh DB until users create channels and posts (demo auto-seed was removed on purpose). |
+| `prisma:seed` / `prisma db seed` fails | Run `npm ci` (repo includes `tsx`); ensure `DATABASE_URL` is set and DB is up. |
 
-### Key Differentiators
+---
 
-- integrated end-to-end journey (discovery -> booking -> mentoring -> execution)
-- transparent and tunable mentor matching algorithm
-- compounding data moat from cross-feature interactions
-- strong focus on quality and trust over rapid, low-quality growth
+## Contributing
 
-## Business Model
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) (install, migrate, `npm run ci`, PR expectations).
 
-- **Primary:** take rate on mentorship session bookings.
-- **Growth:** premium AI features and advanced execution workflows.
-- **Future:** tiered subscriptions for students and mentor operators/programs.
+---
 
-## Tech Stack
+## License
 
-- **Framework:** Next.js (App Router), React, TypeScript, Tailwind CSS
-- **Auth:** Clerk
-- **Database:** PostgreSQL + Prisma
-- **Payments:** optional Stripe module is scaffolded in the codebase for future activation
-- **Storage:** S3-compatible upload flow with presigned URLs (or local upload fallback)
-- **Video:** Agora
-- **Validation and testing:** Zod + Vitest
-
-## Documentation For Engineers
-
-- [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md)
-- [`docs/REPO_STRUCTURE.md`](./docs/REPO_STRUCTURE.md)
-- [`PRODUCTION.md`](./PRODUCTION.md)
-
-## Repo Layout
-
-High-level repository structure lives in [`docs/REPO_STRUCTURE.md`](./docs/REPO_STRUCTURE.md).
-
-## Near-Term Roadmap
-
-- Launch hardening: reliability, moderation, and observability.
-- Better notifications and real-time collaboration loops.
-- Stronger outcome tracking and student progress intelligence.
-- Expanded mentor-side products (programs, bundles, repeatable offerings).
-
-LinkU is built with a focus on trust, quality, and measurable student outcomes.
+[MIT](./LICENSE)
