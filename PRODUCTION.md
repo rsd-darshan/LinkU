@@ -7,7 +7,7 @@ Use this checklist before deploying LinkU to production. For a full analysis (ar
 - [ ] **Production env** – Use a dedicated `.env.production` or platform env vars (Vercel, etc.). Never commit real secrets.
 - [ ] **Clerk** – Switch to production instance; set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`; add production domain to Clerk Dashboard allowed origins/redirect URLs.
 - [ ] **Database** – Use a managed PostgreSQL (e.g. Vercel Postgres, Neon, RDS) with a strong `DATABASE_URL`; run migrations in CI or deploy step.
-- [ ] **Stripe** – Use live keys (`sk_live_`, `pk_live_`); set `STRIPE_WEBHOOK_SECRET` for the production webhook endpoint.
+- [ ] **Stripe (optional)** – Configure only if payment flow is enabled; set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`.
 - [ ] **S3** – Production bucket with correct CORS and IAM; restrict presign to allowed paths/sizes.
 - [ ] **Agora** – Production app ID and certificate for video calls.
 - [ ] **NEXT_PUBLIC_APP_URL** – Set to your production URL (e.g. `https://app.linku.com`).
@@ -18,7 +18,7 @@ Use this checklist before deploying LinkU to production. For a full analysis (ar
 - [ ] **API rate limiting** – Add rate limiting (e.g. `@upstash/ratelimit` or Vercel KV) on auth, booking, and message APIs to prevent abuse.
 - [ ] **Input validation** – Keep using Zod on all API inputs; avoid raw `dangerouslySetInnerHTML`; sanitize user content (you have `lib/sanitize.ts`).
 - [ ] **Headers** – Security headers are set in `next.config.ts` (X-Frame-Options, X-Content-Type-Options, Referrer-Policy). Verify in production.
-- [ ] **Stripe webhook** – Signature verification is implemented; ensure webhook URL and secret are correct in production.
+- [ ] **Payment webhooks (optional)** – If Stripe is enabled, ensure webhook URL and secret are correct in production.
 
 ## 3. Reliability & errors
 
@@ -41,9 +41,9 @@ Use this checklist before deploying LinkU to production. For a full analysis (ar
 
 ## 6. Testing
 
-- [ ] **Unit / integration** – Vitest covers matching, HTTP helpers, sanitization, and Clerk publishable-key detection; extend to booking, messaging guards, and Stripe webhook.
+- [ ] **Unit / integration** – Vitest covers matching, HTTP helpers, sanitization, and Clerk publishable-key detection; extend to booking and messaging guards (plus payment webhooks if enabled).
 - [ ] **E2E** – Add a small E2E suite (e.g. Playwright) for sign-in, booking flow, and messaging.
-- [ ] **Manual** – Test sign-up, onboarding, mentor discovery, booking, payments, and video calls on staging.
+- [ ] **Manual** – Test sign-up, onboarding, mentor discovery, booking, and video calls on staging (plus payments if enabled).
 
 ## 7. Data & compliance
 
@@ -68,6 +68,6 @@ Use this checklist before deploying LinkU to production. For a full analysis (ar
 |------------|--------------------------------------------|--------------------------------------------|
 | Auth       | Clerk + proxy, role guards                 | Production Clerk keys + domain allowlist   |
 | Errors     | error.tsx, global-error.tsx, not-found    | Test and optionally add Sentry             |
-| Security   | Zod, sanitize, Stripe verify, headers     | Rate limiting, audit log                   |
+| Security   | Zod, sanitize, headers                    | Rate limiting, audit log                   |
 | Health     | GET /api/health                            | Wire to LB / uptime monitor                |
 | Testing    | Vitest (matching, HTTP helpers, Clerk env) | Add E2E (Playwright) for critical journeys |

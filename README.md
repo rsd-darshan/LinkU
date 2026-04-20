@@ -32,7 +32,7 @@ Instead of juggling 5-10 different tools, students get a single, trusted environ
 
 - **Mentor discovery and matching:** ranked mentor discovery with explainable scoring signals.
 - **Booking workflow:** student booking flow with session duration, pricing, and booking states.
-- **Payments integration:** Stripe Checkout and webhook-based booking confirmation are implemented.
+- **Booking lifecycle:** session scheduling, pricing, and state transitions are implemented.
 - **Messaging and threads:** direct messaging with access controls tied to relationship context.
 - **Community graph:** feed, channels, comments, shares, and networking connections.
 - **Video calls:** Agora-powered call setup and call invitation APIs.
@@ -81,7 +81,7 @@ LinkU is different. It is a vertically integrated student guidance system that u
 - **Framework:** Next.js (App Router), React, TypeScript, Tailwind CSS
 - **Auth:** Clerk
 - **Database:** PostgreSQL + Prisma
-- **Payments:** Stripe
+- **Payments:** optional Stripe module is scaffolded in the codebase for future activation
 - **Storage:** S3-compatible upload flow with presigned URLs (or local upload fallback)
 - **Video:** Agora
 - **Validation and testing:** Zod + Vitest
@@ -91,6 +91,10 @@ LinkU is different. It is a vertically integrated student guidance system that u
 - [`docs/SYSTEM_DESIGN.md`](./docs/SYSTEM_DESIGN.md)
 - [`docs/REPO_STRUCTURE.md`](./docs/REPO_STRUCTURE.md)
 - [`PRODUCTION.md`](./PRODUCTION.md)
+
+## Repo Layout
+
+High-level repository structure lives in [`docs/REPO_STRUCTURE.md`](./docs/REPO_STRUCTURE.md).
 
 ## Near-Term Roadmap
 

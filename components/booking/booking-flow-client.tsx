@@ -219,7 +219,7 @@ export function BookingFlowClient() {
         <p className="text-caption text-slate-500">Platform fee (15%) is included in this total.</p>
         <div className="mt-4">
           <Button type="button" onClick={() => void startCheckout()} disabled={submitting || !selectedSlot}>
-            {submitting ? "Redirecting…" : "Proceed to Stripe Checkout"}
+            {submitting ? "Redirecting…" : "Proceed to Checkout"}
           </Button>
         </div>
       </section>

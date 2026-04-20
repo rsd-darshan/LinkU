@@ -32,10 +32,10 @@
           +-------------------------+--------------------------+
           |                         |                          |
           v                         v                          v
-   +-------------+          +-------------+           +----------------+
-   |    Clerk    |          |   Stripe    |           |       S3       |
-   | Auth + RBAC |          | Payments    |           | Presigned Media|
-   +-------------+          +-------------+           +----------------+
+   +-------------+          +-----------------------+  +----------------+
+   |    Clerk    |          | Payments (optional)   |  |       S3       |
+   | Auth + RBAC |          | Stripe-ready module   |  | Presigned Media|
+   +-------------+          +-----------------------+  +----------------+
 ```
 
 ## Key Flows
@@ -47,13 +47,12 @@
 3. `services/matching.ts` computes weighted scores by major, country, GPA proximity, university overlap, verification signal, and rating quality.
 4. API returns ranked mentors (optionally with score breakdown for explainability).
 
-### 2) Booking and payment
+### 2) Booking lifecycle
 
 1. Student selects mentor and time slot.
 2. API validates slot availability and creates a draft booking.
-3. Stripe Checkout session is created.
-4. Stripe webhook confirms payment and upserts transaction.
-5. Booking state transitions to `UPCOMING`.
+3. Optional payment module can create a checkout session when enabled.
+4. Booking status transitions are persisted and visible in booking views.
 
 ### 3) Messaging access guard
 
@@ -65,7 +64,7 @@
 
 - **Write path:** UI -> API route -> service function -> Prisma transaction/mutation.
 - **Read path:** UI -> API route -> Prisma query -> normalized response DTO.
-- **External callback path:** Stripe webhook -> signature verification -> idempotent upsert.
+- **External callback path (optional):** Stripe webhook -> signature verification -> idempotent upsert.
 
 ## Scaling Approach
 

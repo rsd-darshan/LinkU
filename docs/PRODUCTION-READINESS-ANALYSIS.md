@@ -16,7 +16,7 @@ LinkU is a **two-sided student platform** that connects:
 | **Admins** | Approve mentors, manage users, moderate content, manage LinkU-AI data (raw data, statistics, outcomes) |
 
 ### Core Value Proposition
-- **Mentorship**: Matching engine (major, country, GPA, target schools) + Stripe booking + Agora video.
+- **Mentorship**: Matching engine (major, country, GPA, target schools) + booking workflow + Agora video.
 - **Community**: Channels, feed (for-you ranking), posts, comments, upvotes, sharing; connections and DMs.
 - **Admissions (LinkU-AI)**: Global profile, university applications and supplements, essay analysis (OpenRouter), fit bands, peer comparison, outcome self-report for future ML.
 
@@ -24,7 +24,7 @@ LinkU is a **two-sided student platform** that connects:
 - **Frontend**: Next.js 16 App Router, React 19, Tailwind, design tokens in `globals.css` + `tailwind.config.ts`, shared components (`card-app`, `focus-ring`, `StateMessage`).
 - **Auth**: Clerk; DB user sync via `getCurrentDbUser()`; role in metadata. **Route protection**: `proxy.ts` (Clerk middleware) protects all app routes (/, dashboard, profile, channels, messages, admin, booking, mentors, linku-ai, networking, notifications, reviews, feed, search, post); admin routes redirect non-admins to dashboard.
 - **Backend**: API routes under `app/api/`, Prisma + PostgreSQL, Zod validation in many (not all) routes, `lib/http.ts` for consistent responses and `handleApiError()`.
-- **Services**: `booking`, `chat-access`, `matching`, `review`, `stripe`, `upload`, `realtime` (placeholder), feed-ranking, LinkU-AI (comparison engine, data pipeline, OpenRouter).
+- **Services**: `booking`, `chat-access`, `matching`, `review`, `upload`, optional `stripe` module, `realtime` (placeholder), feed-ranking, LinkU-AI (comparison engine, data pipeline, OpenRouter).
 
 ---
 
@@ -49,7 +49,7 @@ LinkU is a **two-sided student platform** that connects:
   - **Consistency**: Mix of `rounded-input`, `rounded-card`; some buttons use `min-h-[44px]`, others don’t. Standardizing primary/secondary/danger button variants would help.
 
 ### 2.3 Backend (Structure, DB, API, Security)
-- **Strengths**: Prisma schema with indexes and relations, Zod where used, central `handleApiError`, Stripe webhook verification, sanitization for text.
+- **Strengths**: Prisma schema with indexes and relations, Zod where used, central `handleApiError`, sanitization for text.
 - **Gaps**:
   - **Validation**: Some routes parse body without Zod (e.g. type assertion only); every mutation should use a schema.
   - **Idempotency**: No idempotency keys for booking or payments.
@@ -71,7 +71,7 @@ LinkU is a **two-sided student platform** that connects:
 
 ### 2.6 Production Readiness
 - **Env**: `.env.example` exists with placeholders; document required vs optional and which keys are needed for which features.
-- **Health**: `GET /api/health` runs `SELECT 1` and returns 503 if DB fails — good; add optional dependency checks (e.g. Stripe config) for “degraded” state.
+- **Health**: `GET /api/health` runs `SELECT 1` and returns 503 if DB fails — good; add optional dependency checks for “degraded” state.
 - **Logging**: No structured logger; `console.error` in dev only in `handleApiError`. Add Pino/Axiom and log errors with request context.
 - **Monitoring**: No Sentry or APM; add error tracking and optional performance hooks.
 - **Deployment**: Build and start commands are standard; add note for `prisma migrate deploy` in CI/CD and never `migrate dev` in production.
@@ -88,7 +88,7 @@ LinkU is a **two-sided student platform** that connects:
 ### P1 (Robustness & UX)
 4. **Central API error handling**: Optional wrapper or helper that logs, attaches request ID, and returns a consistent JSON shape.
 5. **Loading and empty states**: Use `StateMessage` (or a shared skeleton) everywhere lists can be empty or loading; consistent button disabled states during submit.
-6. **Health check**: Extend with optional checks (DB + optional Stripe) and return 503 when critical deps are down.
+6. **Health check**: Extend with optional checks (DB + feature-flagged dependencies) and return 503 when critical deps are down.
 
 ### P2 (Scale & Ops)
 7. **Rate limiting**: Add to auth, booking, messages, uploads (e.g. Upstash).
@@ -121,7 +121,7 @@ LinkU is a **two-sided student platform** that connects:
 | Error handling | Centralized | Add logging + request ID; no stack in prod |
 | Loading / empty states | Mixed | Standardize with StateMessage/skeletons |
 | Security headers | Set | Keep; add rate limiting |
-| Health check | DB only | Optional Stripe; 503 on failure |
+| Health check | DB only | Optional dependency checks; 503 on failure |
 | Logging / monitoring | Minimal | Structured logs + Sentry (or similar) |
 | Env & deployment | Documented | Env.example + deploy notes |
 | Realtime / audit / report | Missing | P2/P3 as needed |

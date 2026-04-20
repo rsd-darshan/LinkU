@@ -8,9 +8,9 @@ Prioritised ideas to add or improve, based on the current codebase (student–me
 
 | Area | Recommendation | Why |
 |------|----------------|------|
-| **Realtime** | Replace placeholder with a real adapter (e.g. Pusher, Ably, or your existing Socket.io) for chat and notifications. | README calls this out; messages and notifications feel live and reduce support. |
-| **API rate limiting** | Add middleware (e.g. `@upstash/ratelimit` or Vercel KV) on auth’d and public routes. | Prevents abuse, DoS, and keeps Stripe/Agora/DB usage predictable. |
-| **Stripe idempotency** | Use idempotency keys for checkout and any critical webhook-side writes. | Avoids double charges or duplicate bookings on retries. |
+| **Realtime** | Replace placeholder with a real adapter (e.g. Pusher or Ably) for chat and notifications if you decide to ship realtime. | Reduces polling load and improves UX responsiveness. |
+| **API rate limiting** | Add middleware (e.g. `@upstash/ratelimit` or Vercel KV) on auth’d and public routes. | Prevents abuse, DoS, and keeps infra usage predictable. |
+| **Payment idempotency (optional)** | If payment flow is enabled, use idempotency keys for checkout and critical webhook-side writes. | Avoids duplicate charges or duplicate bookings on retries. |
 | **Call reliability** | Persist call invites (e.g. `CallInvite` with `channelName`, `inviterId`, `inviteeId`, `status`, `expiresAt`) and surface “missed call” in notifications. | Users see missed calls and can call back; supports moderation. |
 
 ---
@@ -30,11 +30,11 @@ Prioritised ideas to add or improve, based on the current codebase (student–me
 
 | Area | Recommendation | Why |
 |------|----------------|------|
-| **Unit** | Core domain: matching scoring, booking collision, chat-access rules, Stripe webhook payload handling. | Prevents regressions in money and permissions. |
+| **Unit** | Core domain: matching scoring, booking collision, and chat-access rules (plus webhook payload handling if payments are enabled). | Prevents regressions in critical paths and permissions. |
 | **API** | Integration tests for critical paths: onboarding, discover, booking create, message send, token/call invite. | Catches auth and DB/API contract breakage. |
 | **E2E** | One happy path (e.g. sign up → discover → request connection → send message → leave). Optional: call flow with Agora mock or test project. | Validates full user journey before release. |
 
-Start with **matching**, **booking**, and **chat-access** plus one E2E path; add Stripe and Agora tests as you harden payments and calls.
+Start with **matching**, **booking**, and **chat-access** plus one E2E path; add payment tests only when that flow is enabled.
 
 ---
 
@@ -66,7 +66,7 @@ Start with **matching**, **booking**, and **chat-access** plus one E2E path; add
 | Area | Recommendation | Why |
 |------|----------------|------|
 | **Structured logging** | Log request id, user id, route, and errors in a consistent format (e.g. JSON). | Easier debugging and log aggregation. |
-| **Health checks** | `GET /api/health` that checks DB (and optionally Stripe/Agora reachability). | Deployment and monitoring know when the app is unhealthy. |
+| **Health checks** | `GET /api/health` that checks DB (and optionally other enabled dependencies). | Deployment and monitoring know when the app is unhealthy. |
 | **Error tracking** | Send front-end and API errors to Sentry (or similar). | Surfaces real user issues and stack traces. |
 | **Metrics** | Key counters: sign-ups, bookings created, messages sent, calls started; optional: latency percentiles for critical APIs. | Product and performance visibility. |
 
@@ -78,7 +78,7 @@ Start with **matching**, **booking**, and **chat-access** plus one E2E path; add
 |------|----------------|------|
 | **Env & config** | Single validated config (e.g. Zod) built from `process.env` and used everywhere. | Fewer “missing env” bugs and one place to document variables. |
 | **API responses** | Standard envelope (e.g. `{ data, error, meta }`) and consistent status codes. | Simpler client handling and error UX. |
-| **Realtime** | If you keep Socket.io, move it behind a small service in `/services` and use it for chat/typing/notifications so the pattern is clear. | Matches README and keeps realtime logic in one place. |
+| **Realtime** | When you choose a realtime provider, isolate it behind a small service in `/services` for chat/typing/notifications. | Keeps integration swap-friendly and architecture clear. |
 
 ---
 

@@ -13,14 +13,14 @@ This file describes the technologies and conventions used in the LinkU codebase 
 | Database  | **PostgreSQL** | Via Prisma |
 | ORM       | **Prisma** | Schema in `prisma/schema.prisma`; run `prisma generate` / `prisma migrate` |
 
-## Auth, payments, infra
+## Auth and infra
 
 | Category   | Technology | Notes |
 |-----------|------------|--------|
 | Auth      | **Clerk** | `@clerk/nextjs`; sign-in/sign-up and user context |
-| Payments  | **Stripe** | Checkout sessions and webhooks |
+| Payments  | **Stripe (optional)** | Checkout/webhook module exists in codebase; enable only when payment flow is active |
 | Storage   | **AWS S3** | Presigned uploads via `@aws-sdk/client-s3` and `@aws-sdk/s3-request-presigner` |
-| Realtime  | **Socket.io** | Chat / messaging |
+| Realtime  | **Polling (current)** | Realtime adapter is not active yet |
 | Video     | **Agora** | `agora-rtc-react`, `agora-token` for calls |
 
 ## Key libraries
@@ -45,7 +45,7 @@ This file describes the technologies and conventions used in the LinkU codebase 
 - `components/` – Reusable UI (layout, feature components).
 - `lib/` – Shared utilities (auth, db, validation).
 - `prisma/` – Schema and migrations.
-- `services/` – Business logic (booking, matching, stripe, etc.).
+- `services/` – Business logic (booking, matching, upload, and optional payment module).
 
 ## Commands
 
