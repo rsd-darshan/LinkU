@@ -19,10 +19,10 @@ function formatMessage(level: string, message: string, meta?: LogMeta) {
 
 export const logger = {
   info(message: string, meta?: LogMeta) {
-    console.log(formatMessage("info", message, meta));
+    process.stdout.write(`${formatMessage("info", message, meta)}\n`);
   },
   warn(message: string, meta?: LogMeta) {
-    console.warn(formatMessage("warn", message, meta));
+    process.stderr.write(`${formatMessage("warn", message, meta)}\n`);
   },
   error(message: string, meta?: LogMeta & { error?: unknown }) {
     const err = meta?.error;
@@ -32,6 +32,6 @@ export const logger = {
       safeMeta.errorMessage = err.message;
       if (!isProd) safeMeta.stack = err.stack;
     }
-    console.error(formatMessage("error", message, safeMeta));
+    process.stderr.write(`${formatMessage("error", message, safeMeta)}\n`);
   },
 };

@@ -285,7 +285,7 @@ function MessagesContent() {
             <input
               id="messages-search"
               type="search"
-              placeholder="Search"
+              placeholder="Search conversations"
               className="w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-body-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               value={search}
               onChange={(e) => setSearch(e.target.value)}

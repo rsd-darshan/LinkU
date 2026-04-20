@@ -26,11 +26,14 @@ function log(level: LogLevel, message: string, meta?: unknown) {
     timestamp: new Date().toISOString(),
   };
   if (process.env.NODE_ENV === "development") {
-    const fn = level === "error" ? console.error : level === "warn" ? console.warn : console.log;
-    fn(`[linku-ai][${level}]`, message, meta != null ? serialize(meta) : "");
+    const output = `[linku-ai][${level}] ${message}${meta != null ? ` ${JSON.stringify(serialize(meta))}` : ""}\n`;
+    if (level === "error" || level === "warn") {
+      process.stderr.write(output);
+    } else {
+      process.stdout.write(output);
+    }
   } else {
-    // Production: structured one-liner, no PII in meta by default
-    console.log(JSON.stringify(payload));
+    process.stdout.write(`${JSON.stringify(payload)}\n`);
   }
 }
 

@@ -4,13 +4,11 @@ import { handleApiError, ok } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 import { postCreateSchema } from "@/lib/validation";
 import { sanitizeText } from "@/lib/sanitize";
-import { ensureDemoFeedData } from "@/lib/demo-feed";
 import { getCurrentDbUser } from "@/lib/auth";
 import { rankFeedPostsForUser } from "@/services/feed-ranking";
 
 export async function GET(req: NextRequest) {
   try {
-    await ensureDemoFeedData();
     const slug = req.nextUrl.searchParams.get("channel") || undefined;
     const sort = req.nextUrl.searchParams.get("sort") || "for_you";
     const currentUser = await getCurrentDbUser();

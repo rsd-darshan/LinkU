@@ -8,7 +8,7 @@ Prioritised ideas to add or improve, based on the current codebase (student–me
 
 | Area | Recommendation | Why |
 |------|----------------|------|
-| **Realtime** | Replace placeholder with a real adapter (e.g. Pusher or Ably) for chat and notifications if you decide to ship realtime. | Reduces polling load and improves UX responsiveness. |
+| **Realtime** | Implement a production realtime adapter (e.g. Pusher or Ably) for chat and notifications if you ship realtime. | Reduces polling load and improves UX responsiveness. |
 | **API rate limiting** | Add middleware (e.g. `@upstash/ratelimit` or Vercel KV) on auth’d and public routes. | Prevents abuse, DoS, and keeps infra usage predictable. |
 | **Payment idempotency (optional)** | If payment flow is enabled, use idempotency keys for checkout and critical webhook-side writes. | Avoids duplicate charges or duplicate bookings on retries. |
 | **Call reliability** | Persist call invites (e.g. `CallInvite` with `channelName`, `inviterId`, `inviteeId`, `status`, `expiresAt`) and surface “missed call” in notifications. | Users see missed calls and can call back; supports moderation. |
@@ -19,7 +19,7 @@ Prioritised ideas to add or improve, based on the current codebase (student–me
 
 | Area | Recommendation | Why |
 |------|----------------|------|
-| **Report workflow** | Add a `Report` model (reporter, reported user/post/booking, reason, status, resolvedAt, resolvedBy) and wire `/api/admin/reported-accounts` to it. Add “Report” in UI (profile, post, message). | Fulfils the existing placeholder and gives a real moderation path. |
+| **Report workflow** | Add a `Report` model (reporter, reported user/post/booking, reason, status, resolvedAt, resolvedBy) and wire `/api/admin/reported-accounts` to it. Add “Report” in UI (profile, post, message). | Completes the moderation path and supports safer operations. |
 | **Audit logging** | Log sensitive actions (login, role change, mentor approve/reject, user deactivate, payout, report resolve) to a table or external log. | Accountability and compliance; easier incident review. |
 | **Input & output** | Keep using Zod; add max lengths and sanitisation for rich text / `body`/`bio` where needed; avoid raw HTML render. | Reduces XSS and abuse; keeps DB and APIs predictable. |
 | **CORS / CSP** | If you add more public or embeddable endpoints, lock CORS and consider a strict CSP. | Limits cross-origin abuse and script injection. |

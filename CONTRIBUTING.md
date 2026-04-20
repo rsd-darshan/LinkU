@@ -15,7 +15,7 @@ Run the same checks as CI, then a production build:
 npm run ci && npm run build
 ```
 
-Use a **real** Clerk publishable key in `.env.local` for full auth behavior, or leave `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` unset / use a short placeholder so the app uses the same non-Clerk shell as CI (see `lib/clerk-publishable-key.ts`).
+Use a **real** Clerk publishable key in `.env.local` for full auth behavior, or leave `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` empty so the app follows the same non-Clerk shell used in CI (see `lib/clerk-publishable-key.ts`).
 
 ## Code style
 

@@ -6,7 +6,7 @@ Use this checklist before deploying LinkU to production. For a full analysis (ar
 
 - [ ] **Production env** – Use a dedicated `.env.production` or platform env vars (Vercel, etc.). Never commit real secrets.
 - [ ] **Clerk** – Switch to production instance; set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`; add production domain to Clerk Dashboard allowed origins/redirect URLs.
-- [ ] **Database** – Use a managed PostgreSQL (e.g. Vercel Postgres, Neon, RDS) with a strong `DATABASE_URL`; run migrations in CI or deploy step.
+- [ ] **Database** – Use a managed PostgreSQL provider (e.g. Neon or RDS) with a strong `DATABASE_URL`; run migrations in CI or deploy step.
 - [ ] **Stripe (optional)** – Configure only if payment flow is enabled; set `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`.
 - [ ] **S3** – Production bucket with correct CORS and IAM; restrict presign to allowed paths/sizes.
 - [ ] **Agora** – Production app ID and certificate for video calls.
@@ -25,7 +25,7 @@ Use this checklist before deploying LinkU to production. For a full analysis (ar
 - [ ] **Error boundaries** – `app/error.tsx` and `app/global-error.tsx` are in place so React errors don’t white-screen; test by throwing in a page.
 - [ ] **404** – `app/not-found.tsx` provides a custom 404.
 - [ ] **API errors** – `lib/http.ts` centralizes error responses; avoid leaking stack traces or internal details in production.
-- [ ] **Logging** – Add structured logging (e.g. Pino, Axiom, Vercel Logs) for API errors and critical actions; avoid `console.log` for sensitive data.
+- [ ] **Logging** – Add structured logging (e.g. Pino, Axiom, Vercel Logs) for API errors and critical actions; avoid plain stdout/stderr logs for sensitive data.
 
 ## 4. Monitoring & health
 
@@ -51,9 +51,9 @@ Use this checklist before deploying LinkU to production. For a full analysis (ar
 - [ ] **Privacy** – If you collect PII, document it and add a privacy policy; consider cookie/consent if required.
 - [ ] **Reported accounts** – Implement the report workflow and moderation queue referenced in `api/admin/reported-accounts` (model + UI).
 
-## 8. Realtime & infra (from README)
+## 8. Realtime & infra
 
-- [ ] **Realtime** – Replace placeholder in `services/realtime.ts` with Pusher, Ably, or a WebSocket gateway if you need live updates beyond polling.
+- [ ] **Realtime** – Implement `services/realtime.ts` with Pusher, Ably, or a WebSocket gateway if you need live updates beyond polling.
 - [ ] **Audit logging** – Add an audit log (table or service) for admin actions, payment events, and sensitive operations.
 
 ## 9. Deployment

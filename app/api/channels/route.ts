@@ -4,11 +4,9 @@ import { badRequest, handleApiError, ok } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 import { sanitizeText, toSlug } from "@/lib/sanitize";
 import { channelCreateSchema } from "@/lib/validation";
-import { ensureDemoFeedData } from "@/lib/demo-feed";
 
 export async function GET() {
   try {
-    await ensureDemoFeedData();
     const channels = await prisma.channel.findMany({
       include: {
         _count: {

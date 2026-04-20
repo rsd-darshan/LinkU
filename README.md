@@ -3,30 +3,29 @@
 [![CI](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml/badge.svg)](https://github.com/rsd-darshan/LinkU/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
-LinkU combines verified mentorship, community learning, and admissions-focused AI to help students make smarter, high-stakes education decisions with confidence and clarity.
+LinkU is a student guidance platform that combines mentorship, peer community, and admissions-focused AI tools.
 
 ## Launch Status
 
 **Launching Soon** — Currently in active development and validation.
 
-Core student and mentor journeys are already implemented in this codebase. The focus now is quality, trust, and measurable outcomes before broad release.
+Core student and mentor workflows are implemented in this repository. Current work is focused on reliability, moderation, and launch readiness.
 
 ## The Problem
 
-Students face life-changing education decisions armed with:
+Students often make major education decisions with:
 
-- random tips from social media
-- expensive, often inaccessible counseling
-- generic AI advice lacking personal context
-- no structured system to turn plans into action
+- fragmented advice from social platforms
+- expensive counseling options
+- AI guidance without personal context
+- no consistent system to move from planning to execution
 
-The result is fragmented guidance, anxiety, and suboptimal outcomes.
+This leads to uncertainty and lower-quality outcomes.
 
 ## Our Solution
 
-LinkU closes this gap by bringing mentors, community, execution workflows, and intelligent AI together in one seamless platform.
-
-Instead of juggling 5-10 different tools, students get a single, trusted environment to discover guidance -> book sessions -> execute plans -> track outcomes.
+LinkU addresses this by combining mentors, community workflows, and AI support in one product.
+Students can discover guidance, book sessions, execute plans, and track progress in a single place.
 
 ## Core Features (Currently Implemented)
 
@@ -56,7 +55,7 @@ The market is growing, but most solutions stay in one category:
 - **Application/admissions tooling:** CollegeVine and other AI-heavy admissions guidance products.
 - **Peer/community-driven options:** Unibuddy, peer mentorship communities, Discord/Reddit groups.
 
-LinkU is different. It is a vertically integrated student guidance system that unifies:
+LinkU is differentiated by combining:
 
 - verified mentorship
 - active community
@@ -103,6 +102,4 @@ High-level repository structure lives in [`docs/REPO_STRUCTURE.md`](./docs/REPO_
 - Stronger outcome tracking and student progress intelligence.
 - Expanded mentor-side products (programs, bundles, repeatable offerings).
 
-LinkU is being built with care, rigor, and a deep focus on trust, quality, and measurable student outcomes.
-
-We are not just building another tool - we are building the operating system for student guidance.
+LinkU is built with a focus on trust, quality, and measurable student outcomes.

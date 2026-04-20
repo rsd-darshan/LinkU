@@ -105,18 +105,19 @@ async function getPreviousYearStats(
   };
 }
 
-function mapIpedsToRecord(ipeds: Record<string, unknown>): Parameters<typeof normalize>[0] {
+function mapIpedsToRecord(ipeds: Record<string, unknown> | null): Parameters<typeof normalize>[0] {
+  const safe = ipeds ?? {};
   return {
-    gpa25: ipeds.gpa25 as number | undefined,
-    gpa50: ipeds.gpa50 as number | undefined,
-    gpa75: ipeds.gpa75 as number | undefined,
-    sat25: ipeds.sat25 as number | undefined,
-    sat50: ipeds.sat50 as number | undefined,
-    sat75: ipeds.sat75 as number | undefined,
-    acceptanceRate: ipeds.acceptanceRate as number | undefined,
-    internationalAcceptanceRate: ipeds.internationalAcceptanceRate as number | undefined,
-    needBlind: ipeds.needBlind as boolean | undefined,
-    needAwareSeverity: ipeds.needAwareSeverity as number | undefined,
-    edBoostFactor: ipeds.edBoostFactor as number | undefined,
+    gpa25: safe.gpa25 as number | undefined,
+    gpa50: safe.gpa50 as number | undefined,
+    gpa75: safe.gpa75 as number | undefined,
+    sat25: safe.sat25 as number | undefined,
+    sat50: safe.sat50 as number | undefined,
+    sat75: safe.sat75 as number | undefined,
+    acceptanceRate: safe.acceptanceRate as number | undefined,
+    internationalAcceptanceRate: safe.internationalAcceptanceRate as number | undefined,
+    needBlind: safe.needBlind as boolean | undefined,
+    needAwareSeverity: safe.needAwareSeverity as number | undefined,
+    edBoostFactor: safe.edBoostFactor as number | undefined,
   };
 }

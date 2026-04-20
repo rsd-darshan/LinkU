@@ -24,7 +24,7 @@ LinkU is a **two-sided student platform** that connects:
 - **Frontend**: Next.js 16 App Router, React 19, Tailwind, design tokens in `globals.css` + `tailwind.config.ts`, shared components (`card-app`, `focus-ring`, `StateMessage`).
 - **Auth**: Clerk; DB user sync via `getCurrentDbUser()`; role in metadata. **Route protection**: `proxy.ts` (Clerk middleware) protects all app routes (/, dashboard, profile, channels, messages, admin, booking, mentors, linku-ai, networking, notifications, reviews, feed, search, post); admin routes redirect non-admins to dashboard.
 - **Backend**: API routes under `app/api/`, Prisma + PostgreSQL, Zod validation in many (not all) routes, `lib/http.ts` for consistent responses and `handleApiError()`.
-- **Services**: `booking`, `chat-access`, `matching`, `review`, `upload`, optional `stripe` module, `realtime` (placeholder), feed-ranking, LinkU-AI (comparison engine, data pipeline, OpenRouter).
+- **Services**: `booking`, `chat-access`, `matching`, `review`, `upload`, optional `stripe` module, `realtime` (implementation pending), feed-ranking, LinkU-AI (comparison engine, data pipeline, OpenRouter).
 
 ---
 
@@ -33,7 +33,7 @@ LinkU is a **two-sided student platform** that connects:
 ### 2.1 Missing or Weak Features
 - **Route protection**: All authenticated app routes should be behind middleware so unauthenticated users are redirected once, not per-page.
 - **Reported accounts**: Referenced in PRODUCTION.md and admin API; no Report model or full workflow.
-- **Realtime**: `services/realtime.ts` is placeholder; messaging/notifications rely on polling.
+- **Realtime**: `services/realtime.ts` still needs provider integration; messaging/notifications rely on polling.
 - **Audit logging**: No audit log for admin actions, payments, or sensitive ops.
 - **Rate limiting**: No API rate limiting (auth, booking, messages, uploads).
 - **LinkU-AI**: Cron and outcomes are admin-only; student self-report exists. No in-app “results” dashboard for students.
@@ -70,7 +70,7 @@ LinkU is a **two-sided student platform** that connects:
 - **User feedback**: Success messages are inline (“Saved.”, “Result recorded.”); no toasts or persistent notification area.
 
 ### 2.6 Production Readiness
-- **Env**: `.env.example` exists with placeholders; document required vs optional and which keys are needed for which features.
+- **Env**: `.env.example` exists; document required vs optional and which keys are needed for which features.
 - **Health**: `GET /api/health` runs `SELECT 1` and returns 503 if DB fails — good; add optional dependency checks for “degraded” state.
 - **Logging**: No structured logger; `console.error` in dev only in `handleApiError`. Add Pino/Axiom and log errors with request context.
 - **Monitoring**: No Sentry or APM; add error tracking and optional performance hooks.
@@ -98,7 +98,7 @@ LinkU is a **two-sided student platform** that connects:
 ### P3 (Polish)
 10. **Toasts / notifications**: Global success/error feedback for key actions.
 11. **Audit log**: Table or service for admin and payment events.
-12. **Realtime**: Replace placeholder for messaging/notifications if product requires it.
+12. **Realtime**: Implement provider-backed messaging/notifications if product requires live updates.
 
 ---
 

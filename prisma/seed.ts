@@ -143,11 +143,11 @@ async function main() {
         },
       });
     }
-    console.log(`Seeded ${list.length} universities from public dataset.`);
+    process.stdout.write(`Seeded ${list.length} universities from public dataset.\n`);
     return;
   }
 
-  // Fallback: embedded US list (short slugs to match SUPPLEMENT_PROMPTS)
+  // Fallback: embedded US list (short slugs to match SUPPLEMENT_PROMPTS).
   const FALLBACK: Array<{ name: string; slug: string; state?: string }> = [
     { name: "Harvard University", slug: "harvard", state: "Massachusetts" },
     { name: "Stanford University", slug: "stanford", state: "California" },
@@ -208,12 +208,12 @@ async function main() {
       },
     });
   }
-  console.log(`Seeded ${FALLBACK.length} universities (fallback list).`);
+  process.stdout.write(`Seeded ${FALLBACK.length} universities (fallback list).\n`);
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    process.stderr.write(`${e instanceof Error ? e.stack ?? e.message : String(e)}\n`);
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());

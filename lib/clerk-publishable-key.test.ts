@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { isUsableClerkPublishableKey } from "./clerk-publishable-key";
 
 describe("isUsableClerkPublishableKey", () => {
-  it("rejects empty and placeholders", () => {
+  it("rejects empty and malformed values", () => {
     expect(isUsableClerkPublishableKey(undefined)).toBe(false);
     expect(isUsableClerkPublishableKey("")).toBe(false);
-    expect(isUsableClerkPublishableKey("pk_test_xxx")).toBe(false);
+    expect(isUsableClerkPublishableKey("pk_test_short")).toBe(false);
     expect(isUsableClerkPublishableKey("pk_live_short")).toBe(false);
   });
 

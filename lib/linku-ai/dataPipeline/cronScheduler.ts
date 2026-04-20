@@ -48,7 +48,5 @@ async function fetchCdsForUniversity(
   _universityId: string,
   _year: number
 ): Promise<Record<string, unknown> | null> {
-  // TODO: Fetch CDS URL or PDF for this university/year.
-  // Return parsed JSON suitable for parseCdsJson.
   return null;
 }
