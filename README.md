@@ -27,6 +27,35 @@ This leads to uncertainty and lower-quality outcomes.
 LinkU addresses this by combining mentors, community workflows, and AI support in one product.
 Students can discover guidance, book sessions, execute plans, and track progress in a single place.
 
+## Feeds & community
+
+College admissions discussion on the open web is spread across **hundreds** of scattered Reddit communities and millions of students posting in parallel threads with no shared identity, weak discoverability, and uneven moderation. LinkU brings that energy into **one platform** with clearer structure: a **main feed**, **university (school) channels**, and tooling that sits next to mentorship and messaging—not a clone of Reddit, but a more organized home for the same kinds of conversations.
+
+### Main feed
+
+- **For you** — posts ranked for the signed-in user (signals from profile and activity).
+- **Top** — posts ordered by engagement (e.g. upvotes), then recency.
+- **Channel filter** — optional filter by channel (e.g. `?channel=<slug>`) so the same feed can focus on one university’s space when you want depth over breadth.
+
+### University & school channels
+
+- **Channels** are named spaces (often tied to a **university or school** via display name and metadata) where students and mentors post, comment, upvote, and share—like a dedicated sub-community per institution, but inside LinkU with consistent profiles and moderation hooks.
+- Students **browse channels**, **join** channels they care about, and **publish** into a channel so discussion stays contextual (e.g. “this thread is about School X applicants”) instead of getting lost in a single global firehose.
+
+### Why this vs. Reddit alone?
+
+The largest admissions communities on Reddit are real and huge—but they are **separate islands**. A few core examples (approximate public member counts; Reddit changes these over time—treat as order-of-magnitude):
+
+| Subreddit | Role | Approx. members* |
+|-----------|------|-------------------|
+| [r/ApplyingToCollege](https://www.reddit.com/r/ApplyingToCollege/) | The flagship US admissions hub: essays, ECs, decisions, strategy, and general application talk. | ~500k |
+| [r/college](https://www.reddit.com/r/college/) | Broader college life: academics, campus life, transfers—not only application season. | ~2.9M |
+| [r/IntltoUSA](https://www.reddit.com/r/IntltoUSA/) | International students targeting US schools: visas, testing, fit, and culture shock. | ~100k |
+
+\*Rounded from public Reddit “members” figures; **not** a live API snapshot—verify on each subreddit’s sidebar if you need exact numbers.
+
+LinkU’s goal is not to replace those communities overnight, but to give students **one place** where feed, channels, mentors, bookings, and AI workflows connect—so advice turns into **next steps** instead of endless scrolling.
+
 ## Core Features (Currently Implemented)
 
 - **Mentor discovery and matching:** ranked mentor discovery with explainable scoring signals.
