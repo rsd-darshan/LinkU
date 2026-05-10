@@ -1,0 +1,374 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --tw-blue: #1da1f2;
+  --tw-text: #0f1419;
+  --tw-text-secondary: #4e5b66;
+  --tw-text-tertiary: #6b7c8a;
+  --tw-border: #eff3f4;
+  --tw-bg: #ffffff;
+  --tw-hover: rgba(15, 20, 25, 0.07);
+  --tw-like: #f91880;
+  --tw-retweet: #00ba7c;
+  --color-page-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-strong: #ffffff;
+  --color-surface-muted: #f7f9f9;
+  --color-border-soft: #eff3f4;
+  --glass-fallback-bg: #ffffff;
+  --glass-fallback-border: #eff3f4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  @apply bg-page;
+  overscroll-behavior-y: contain;
+}
+
+body {
+  @apply antialiased text-ink bg-page;
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  background-color: var(--tw-bg);
+}
+
+/* Full-width shell: side rails sit near viewport edges */
+.layout-shell,
+.container-app {
+  @apply w-full min-w-0 max-w-[100vw] px-2 sm:px-2.5 md:px-3 xl:px-4 2xl:px-5;
+}
+
+.page-content {
+  @apply space-y-0 py-0;
+}
+
+.page-title {
+  @apply text-title font-bold leading-tight text-ink;
+}
+
+.page-description {
+  @apply text-meta text-ink-secondary;
+}
+
+/* Static header: sticky + top offset overlapped content below in the scrollable center column */
+.page-header {
+  @apply relative border-b border-line bg-page px-3 py-1.5 sm:px-4;
+}
+
+.page-header:not(.route-hero) .page-description {
+  @apply mt-0.5;
+}
+
+/* Hero + header combo: one tight strip (no double vertical padding) */
+.page-header.route-hero {
+  @apply py-2 sm:py-2;
+}
+
+.route-hero .page-title {
+  @apply mt-1 leading-tight;
+}
+
+.route-hero .page-description {
+  @apply mt-1 max-w-2xl leading-snug;
+}
+
+.route-hero .route-badge {
+  @apply mb-0;
+}
+
+.route-dashboard .page-header.route-hero {
+  @apply py-1 sm:py-1.5;
+}
+
+.route-dashboard .route-hero .page-title {
+  @apply mt-0;
+}
+
+.route-dashboard .route-hero .page-description {
+  @apply mt-0.5;
+}
+
+/* Flat shell: no decorative meshes */
+.route-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  border-radius: 0;
+  padding: 0;
+}
+
+.route-shell::before,
+.route-shell::after {
+  display: none;
+}
+
+.route-hero {
+  @apply relative border-b border-line bg-page px-3 py-2 sm:px-4;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.route-hero::before {
+  display: none;
+}
+
+.route-badge {
+  @apply inline-flex min-h-[22px] items-center rounded-pill px-2 py-0 text-meta font-semibold text-brand-600;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.route-badge:hover {
+  background: var(--tw-hover);
+}
+
+.route-shell .card-app,
+.route-shell .card-app-section {
+  border-color: var(--tw-border);
+}
+
+.route-shell .chip-app {
+  border-color: var(--tw-border);
+  background: var(--tw-bg);
+}
+
+.feed-hero-soft {
+  box-shadow: none;
+}
+
+.glass-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: var(--tw-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.card-app {
+  @apply border-b border-line bg-page p-4 transition-colors duration-fast ease-smooth;
+}
+.card-app:hover {
+  background-color: var(--tw-hover);
+}
+
+.card-app-section {
+  @apply border border-line bg-page p-4 sm:p-5 transition-colors duration-fast ease-smooth;
+  border-radius: 1rem;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.card-app-section:hover {
+  background-color: var(--tw-hover);
+}
+
+.card-app-muted,
+.card-app--muted {
+  @apply rounded-2xl border border-line bg-page-subtle p-4;
+}
+
+.input-app {
+  @apply min-h-[44px] w-full rounded-input border border-line bg-page px-4 py-2.5 text-tweet text-ink outline-none transition duration-fast;
+}
+.input-app::placeholder {
+  @apply text-ink-secondary;
+}
+.input-app:hover {
+  background-color: var(--color-surface-muted);
+}
+.input-app:focus {
+  @apply ring-1 ring-brand-500 border-brand-500;
+  background: var(--tw-bg);
+}
+
+.focus-ring {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-0;
+}
+
+.btn-app-primary {
+  @apply focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-pill px-5 py-2.5 text-body-sm font-bold text-white transition duration-fast;
+  background-color: var(--tw-blue);
+  box-shadow: none;
+}
+.btn-app-primary:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+.btn-app-primary:disabled {
+  @apply cursor-not-allowed opacity-50;
+}
+
+.btn-app-secondary {
+  @apply focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-pill border border-line bg-page px-4 py-2.5 text-body-sm font-bold text-ink transition duration-fast;
+  box-shadow: none;
+}
+.btn-app-secondary:hover {
+  background-color: var(--tw-hover);
+}
+
+.btn-app-ghost-danger {
+  @apply focus-ring inline-flex min-h-[44px] items-center justify-center gap-2 rounded-pill px-3.5 py-2.5 text-body-sm font-bold text-red-600 transition;
+}
+.btn-app-ghost-danger:hover {
+  @apply bg-red-50 text-red-700;
+}
+
+.chip-app {
+  @apply inline-flex min-h-[36px] items-center rounded-pill border border-line bg-page px-3 py-1 text-meta font-bold text-ink-secondary transition duration-fast;
+}
+.chip-app:hover,
+.chip-app:focus-visible {
+  background-color: var(--tw-hover);
+}
+.chip-app.active {
+  @apply border-brand-500 bg-brand-500 text-white;
+}
+.chip-app.active:hover,
+.chip-app.active:focus-visible {
+  filter: brightness(0.95);
+}
+
+.form-divider {
+  @apply border-t border-line;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.font-serif {
+  @apply font-sans;
+}
+
+/* Chat */
+.chat-container {
+  @apply flex h-full min-h-0;
+}
+
+.chat-main {
+  @apply flex min-h-0 flex-1 overflow-hidden;
+}
+
+.chat-sidebar {
+  @apply flex h-full w-[330px] shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-page;
+  box-shadow: none;
+}
+
+.chat-content {
+  @apply ml-3 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-line bg-page;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass-header {
+    background: var(--glass-fallback-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .glass-header {
+    background: var(--glass-fallback-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+.chat-header {
+  @apply flex items-center justify-between border-b border-line px-4 py-3;
+}
+
+.chat-messages {
+  @apply min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4;
+}
+
+.chat-input-container {
+  @apply border-t border-line p-3;
+}
+
+.chat-input {
+  @apply input-app rounded-pill;
+}
+
+.thread-item {
+  @apply focus-ring flex min-h-[56px] items-center gap-3 border-l-2 border-transparent px-3 py-2 text-body-sm transition;
+}
+.thread-item:hover {
+  background-color: var(--tw-hover);
+}
+.thread-item.active {
+  @apply border-l-brand-500 bg-brand-50/80 text-ink;
+}
+
+.message-bubble {
+  @apply flex max-w-[82%];
+}
+.message-bubble.sent {
+  @apply ml-auto justify-end;
+}
+.message-bubble.received {
+  @apply mr-auto justify-start;
+}
+.message-content {
+  @apply rounded-2xl px-4 py-2.5 text-body-sm border border-line text-ink bg-page;
+}
+.message-bubble.sent .message-content {
+  @apply border-brand-500 bg-brand-500 text-white;
+}
+
+.avatar-circle {
+  @apply flex items-center justify-center rounded-full bg-brand-500 text-white;
+}
+
+.avatar-small {
+  @apply h-10 w-10 text-sm;
+}
+
+@media (max-width: 768px) {
+  .chat-container {
+    @apply flex-col;
+  }
+
+  .chat-sidebar {
+    @apply w-full;
+  }
+
+  .chat-content {
+    @apply ml-0 mt-3;
+  }
+}
