@@ -1,6 +1,12 @@
 # LinkU
 
-A networking platform connecting students with mentors for college admissions guidance, skill-sharing, and academic support.
+There are millions of students navigating college admissions — and most of them are doing it alone, scattered across hundreds of Reddit threads, Discord servers, and anonymous forums. Communities like [r/ApplyingToCollege](https://www.reddit.com/r/ApplyingToCollege/) (1.3M+ members), [r/college](https://www.reddit.com/r/college/) (2.9M+ members), and [r/IntltoUSA](https://www.reddit.com/r/IntltoUSA/) (52k+ members) are full of students asking the same questions, looking for the same guidance — but getting buried under noise, outdated advice, and no real structure.
+
+**LinkU brings all of that into one place.**
+
+A platform where students connect directly with mentors who have already been through it — people from their target universities, their intended major, their country. Where conversations are organized, sessions are bookable, and the guidance is real. Not another Reddit thread. Not another Discord server. A purpose-built space for the college admissions journey.
+
+---
 
 ## What it does
 
@@ -13,7 +19,11 @@ A networking platform connecting students with mentors for college admissions gu
 - **LinkU AI** — admissions intelligence module with essay analysis, university comparison, and outcome predictions; college data is refreshed weekly from CDS, IPEDS, and NCES sources
 - **Admin panel** — account moderation and platform management
 
-## Tech stack
+---
+
+## For developers
+
+### Tech stack
 
 | Area | Technology |
 |------|-----------|
@@ -27,8 +37,6 @@ A networking platform connecting students with mentors for college admissions gu
 | Video | Agora |
 | AI/LLM | OpenRouter |
 | Testing | Vitest |
-
-## Getting started
 
 ### Prerequisites
 
@@ -59,15 +67,13 @@ npm run prisma:seed
 npm run dev
 ```
 
-The app will be available at `http://localhost:3000`.
-
-For HTTPS (needed for some mobile/WebRTC testing):
+The app runs at `http://localhost:3000`. For HTTPS (needed for WebRTC/mobile testing):
 
 ```bash
 npm run dev:https
 ```
 
-## Environment variables
+### Environment variables
 
 Copy `.env.example` to `.env.local` and fill in the values:
 
@@ -104,7 +110,7 @@ S3_PUBLIC_BASE_URL=
 
 See `.env.example` for the full list including optional tuning variables for the matching algorithm and LinkU AI weights.
 
-## Scripts
+### Scripts
 
 ```bash
 npm run dev           # Development server
@@ -118,7 +124,7 @@ npm run ci            # Full check: generate, lint, typecheck, test
 npm run prisma:studio # Open Prisma Studio
 ```
 
-## Project structure
+### Project structure
 
 ```
 app/          # Next.js routes and pages
@@ -128,7 +134,7 @@ services/     # Business logic (matching, booking, reviews, feed ranking)
 prisma/       # Database schema and migrations
 ```
 
-## Deployment
+### Deployment
 
 The project is configured for Vercel with a weekly cron job (`vercel.json`) that refreshes college statistics data for the LinkU AI module.
 
@@ -136,6 +142,6 @@ Before deploying to production:
 
 - Switch Clerk to production keys
 - Use a managed PostgreSQL instance (Neon, RDS, etc.)
-- Configure S3 bucket with CORS and appropriate IAM permissions
+- Configure S3 bucket with CORS and IAM permissions
 - Add Stripe webhook endpoint
 - Set all environment variables in your hosting platform
